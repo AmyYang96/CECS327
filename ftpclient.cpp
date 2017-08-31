@@ -172,16 +172,32 @@ int main(int argc , char *argv[])
  
     //implement LIST
 
-    strReply = request_reply(sockpi, "LIST %\r\n");
+    //request reply from the server for list
+    strReply = request_reply(sockpi, "LIST\r\n");
 
-    std::cout << "first " << strReply << std::endl;
+    //print out message
+    std::cout << strReply << std::endl;
 
-    strReply = request_reply(sockdtp, "LIST %\r\n");
+    //request reply from the data server for the list
+    strReply = reply(sockdtp);
 
+    //request reply from server for retreive
+    strReply = request_reply(sockpi, "RETR welcome.msp\r\n");
 
+    //print out message
+    std::cout << strReply << std::endl;
+
+    //request reply from the data server for retreive
+    strReply = reply(sockdtp);
+
+    //print out message
+    std::cout << strReply << std::endl;
+    
     //TODO implement PASV, LIST, RETR. 
     // Hint: implement a function that set the SP in passive mode and accept commands.
-    std::cout << "second " << strReply << std::endl;
+
+    //print out the list
+    std::cout << strReply << std::endl;
     //quit out
     //strReply = request_reply(sockpi, "QUIT\r\n");
     return 0;
