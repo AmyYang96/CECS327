@@ -29,31 +29,31 @@ iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
 #include <netdb.h>
 
 #define BUFFER_LENGTH 2048
-#define WAITING_TIME 1000
+#define WAITING_TIME 100000
 
 int create_connection(std::string host, int port)
 {
     int s;
     struct sockaddr_in saddr;
     
-    memset(&saddr,0, sizeof(sockaddr));
+    memset(&saddr,0, sizeof(saddr));
     s = socket(AF_INET,SOCK_STREAM,0);
-    sockaddr.sin_family=AF_INET;
-    sockaddr.sin_port= htons(port);
+    saddr.sin_family=AF_INET;
+    saddr.sin_port= htons(port);
     
     int a1,a2,a3,a4;
     if (sscanf(host.c_str(), "%d.%d.%d.%d", &a1, &a2, &a3, &a4 ) == 4)
     {
         std::cout << "by ip";
-        sockaddr.sin_addr.s_addr =  inet_addr(host.c_str());
+        saddr.sin_addr.s_addr =  inet_addr(host.c_str());
     }
     else {
         std::cout << "by name";
         hostent *record = gethostbyname(host.c_str());
         in_addr *addressptr = (in_addr *)record->h_addr;
-        sockaddr.sin_addr = *addressptr;
+        saddr.sin_addr = *addressptr;
     }
-    if(connect(s,(struct sockaddr *)&sockaddr,sizeof(struct sockaddr))==-1)
+    if(connect(s,(struct sockaddr *)&saddr,sizeof(struct sockaddr))==-1)
     {
         perror("connection fail");
         exit(1);
@@ -109,15 +109,47 @@ int main(int argc , char *argv[])
     
     
     strReply = request_reply(sockpi, "USER anonymous\r\n");
-    //TODO parse srtReply to obtain the status. 
-	// Let the system act according to the status and display
+    //TODO parse srtReply to obtain the status.
+
+    int status;
+ 
+    // Let the system act according to the status and display
     // friendly message to the user 
-	// You can see the ouput using std::cout << strReply  << std::endl;
     
+    //get status code
+    status = std::stoi((strReply.substr(0,3)));
+    //print status code
+    std::cout << "STATUS CODE--->" << status << std::endl;
+    //print message
+    std::cout << "MESSAGE--->" << strReply << std::endl;
     
     strReply = request_reply(sockpi, "PASS asa@asas.com\r\n");
-        
+   
+    //get status code
+    status = std::stoi((strReply.substr(0,3)));
+    //print status code
+    std::cout << "STATUS CODE--->" << status << std::endl;
+    //print message
+    std::cout << "MESSAGE--->" << strReply << std::endl;
+
+    //implement PASV
+    strReply = request_reply(sockpi, "PASV\r\n");
+    //get status code
+    status = std::stoi((strReply.substr(0,3)));
+    //print status code
+    std::cout << "STATUS CODE--->" << status << std::endl;
+    //print message
+    std::cout << "MESSAGE--->" << strReply << std::endl;
+    //get last two numbers
+
+
+
+    //implement LIST
+    strReply = request_reply(sockpi, "LIST %\r\n");
     //TODO implement PASV, LIST, RETR. 
     // Hint: implement a function that set the SP in passive mode and accept commands.
+
+    //quit out
+    strReply = request_reply(sockpi, "QUIT\r\n");
     return 0;
 }
