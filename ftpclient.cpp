@@ -29,7 +29,7 @@ iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
 #include <netdb.h>
 
 #define BUFFER_LENGTH 2048
-#define WAITING_TIME 100000
+#define WAITING_TIME 1000000
 
 int create_connection(std::string host, int port)
 {
@@ -95,6 +95,7 @@ std::string request_reply(int s, std::string message)
 int main(int argc , char *argv[])
 {
     int sockpi;
+    int sockdtp;
     std::string strReply;
     
     //TODO  arg[1] can be a dns or an IP address.
@@ -142,14 +143,46 @@ int main(int argc , char *argv[])
     std::cout << "MESSAGE--->" << strReply << std::endl;
     //get last two numbers
 
+    std::cout << "test" << std::endl;
 
+    int b1,b2,b3,b4,b5,b6;
 
+    int start = strReply.find("(");
+    int end = strReply.find(")");
+    std::cout << start << ", " << end << std::endl;    
+
+    std::string numbers = strReply.substr (start+1, end-start-1);
+    //std::regex_search(strReply,"\(([^\)]+)\)")
+
+    if (sscanf(numbers.c_str(), "%d,%d,%d,%d,%d,%d", &b1, &b2, &b3, &b4, &b5, &b6 ) == 6)
+    {
+        std::cout << "first # " << b5 << ", second # " << b6 << std::endl;
+
+    }
+    else {
+        std::cout << "by name";
+    }
+
+    int port = ((b5 << 8)|b6);
+    
+    std::cout << port << std::endl;
+
+    sockdtp = create_connection("130.179.16.134", port);
+    std::cout << "works " << sockdtp << std::endl;
+ 
     //implement LIST
+
     strReply = request_reply(sockpi, "LIST %\r\n");
+
+    std::cout << "first " << strReply << std::endl;
+
+    strReply = request_reply(sockdtp, "LIST %\r\n");
+
+
     //TODO implement PASV, LIST, RETR. 
     // Hint: implement a function that set the SP in passive mode and accept commands.
-
+    std::cout << "second " << strReply << std::endl;
     //quit out
-    strReply = request_reply(sockpi, "QUIT\r\n");
+    //strReply = request_reply(sockpi, "QUIT\r\n");
     return 0;
 }
