@@ -1,6 +1,6 @@
 /**
     C++ client example using sockets.
-    This programs can be compiled in linux and with minor modification in 
+    This programs can be compiled in linux and with minor modification in
 	   mac (mainly on the name of the headers)
     Windows requires extra lines of code and different headers
 #define WIN32_LEAN_AND_MEAN
@@ -35,12 +35,12 @@ int create_connection(std::string host, int port)
 {
     int s;
     struct sockaddr_in saddr;
-    
+
     memset(&saddr,0, sizeof(saddr));
     s = socket(AF_INET,SOCK_STREAM,0);
     saddr.sin_family=AF_INET;
     saddr.sin_port= htons(port);
-    
+
     int a1,a2,a3,a4;
     if (sscanf(host.c_str(), "%d.%d.%d.%d", &a1, &a2, &a3, &a4 ) == 4)
     {
@@ -72,7 +72,7 @@ std::string reply(int s)
     std::string strReply;
     int count;
     char buffer[BUFFER_LENGTH+1];
-    
+
     usleep(WAITING_TIME);
     do {
         count = recv(s, buffer, BUFFER_LENGTH, 0);
@@ -91,13 +91,22 @@ std::string request_reply(int s, std::string message)
 	return "";
 }
 
-
+void printMessage (std::string strReply)
+{
+  //get status code
+  int status = std::stoi((strReply.substr(0,3)));
+  strReply= strReply.substr(4,strReply.length());
+  //print status code
+  std::cout << "STATUS CODE--->" << status << std::endl;
+  //print message
+  std::cout << "MESSAGE--->" << strReply << std::endl;
+}
 int main(int argc , char *argv[])
 {
     int sockpi;
     int sockdtp;
     std::string strReply;
-    
+
     //TODO  arg[1] can be a dns or an IP address.
     if (argc > 2)
         sockpi = create_connection(argv[1], atoi(argv[2]));
@@ -107,49 +116,38 @@ int main(int argc , char *argv[])
         sockpi = create_connection("130.179.16.134", 21);
     strReply = reply(sockpi);
     std::cout << strReply  << std::endl;
-    
-    
+
+
     strReply = request_reply(sockpi, "USER anonymous\r\n");
     //TODO parse srtReply to obtain the status.
 
     int status;
- 
+
     // Let the system act according to the status and display
-    // friendly message to the user 
-    
-    //get status code
-    status = std::stoi((strReply.substr(0,3)));
-    //print status code
-    std::cout << "STATUS CODE--->" << status << std::endl;
-    //print message
-    std::cout << "MESSAGE--->" << strReply << std::endl;
-    
+    // friendly message to the user
+    printMessage(strReply);
+
     strReply = request_reply(sockpi, "PASS asa@asas.com\r\n");
-   
-    //get status code
-    status = std::stoi((strReply.substr(0,3)));
-    //print status code
-    std::cout << "STATUS CODE--->" << status << std::endl;
+
+
     //print message
-    std::cout << "MESSAGE--->" << strReply << std::endl;
+    printMessage(strReply);
 
     //implement PASV
     strReply = request_reply(sockpi, "PASV\r\n");
-    //get status code
-    status = std::stoi((strReply.substr(0,3)));
-    //print status code
-    std::cout << "STATUS CODE--->" << status << std::endl;
+
     //print message
-    std::cout << "MESSAGE--->" << strReply << std::endl;
+    printMessage(strReply);
     //get last two numbers
 
-    std::cout << "test" << std::endl;
+
 
     int b1,b2,b3,b4,b5,b6;
 
     int start = strReply.find("(");
     int end = strReply.find(")");
-    std::cout << start << ", " << end << std::endl;    
+
+    //std::cout << start << ", " << end << std::endl;
 
     std::string numbers = strReply.substr (start+1, end-start-1);
     //std::regex_search(strReply,"\(([^\)]+)\)")
@@ -164,41 +162,46 @@ int main(int argc , char *argv[])
     }
 
     int port = ((b5 << 8)|b6);
-    
+
     std::cout << port << std::endl;
 
     sockdtp = create_connection("130.179.16.134", port);
-    std::cout << "works " << sockdtp << std::endl;
- 
+    std::cout << " works " << sockdtp << std::endl;
+
     //implement LIST
 
     //request reply from the server for list
     strReply = request_reply(sockpi, "LIST\r\n");
 
-    //print out message
-    std::cout << strReply << std::endl;
+    //print message
+    printMessage(strReply);
 
     //request reply from the data server for the list
     strReply = reply(sockdtp);
 
+//********************************RETR to work on
     //request reply from server for retreive
     strReply = request_reply(sockpi, "RETR welcome.msp\r\n");
 
     //print out message
-    std::cout << strReply << std::endl;
+    printMessage(strReply);
 
     //request reply from the data server for retreive
     strReply = reply(sockdtp);
 
-    //print out message
-    std::cout << strReply << std::endl;
-    
-    //TODO implement PASV, LIST, RETR. 
+    //print message
+    printMessage(strReply);
+
+    //TODO implement PASV, LIST, RETR.
     // Hint: implement a function that set the SP in passive mode and accept commands.
 
     //print out the list
     std::cout << strReply << std::endl;
+//*******************************************
     //quit out
-    //strReply = request_reply(sockpi, "QUIT\r\n");
+    strReply = request_reply(sockpi, "QUIT\r\n");
+
+    //print message
+    printMessage(strReply);
     return 0;
 }
