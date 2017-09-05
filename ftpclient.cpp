@@ -101,38 +101,11 @@ void printMessage (std::string strReply)
   //print message
   std::cout << "MESSAGE--->" << strReply << std::endl;
 }
-int main(int argc , char *argv[])
+
+int enterPassive(int sockpi)
 {
-    int sockpi;
     int sockdtp;
     std::string strReply;
-
-    //TODO  arg[1] can be a dns or an IP address.
-    if (argc > 2)
-        sockpi = create_connection(argv[1], atoi(argv[2]));
-    if (argc == 2)
-        sockpi = create_connection(argv[1], 21);
-    else
-        sockpi = create_connection("130.179.16.134", 21);
-    strReply = reply(sockpi);
-    std::cout << strReply  << std::endl;
-
-
-    strReply = request_reply(sockpi, "USER anonymous\r\n");
-    //TODO parse srtReply to obtain the status.
-
-    int status;
-
-    // Let the system act according to the status and display
-    // friendly message to the user
-    printMessage(strReply);
-
-    strReply = request_reply(sockpi, "PASS asa@asas.com\r\n");
-
-
-    //print message
-    printMessage(strReply);
-
     //implement PASV
     strReply = request_reply(sockpi, "PASV\r\n");
 
@@ -168,10 +141,15 @@ int main(int argc , char *argv[])
     sockdtp = create_connection("130.179.16.134", port);
     std::cout << " works " << sockdtp << std::endl;
 
-    //implement LIST
+    return sockdtp;
+}
 
+void command(int sockpi, std::string commandName)
+{
+    int sockdtp = enterPassive(sockpi);
+    std::string strReply;
     //request reply from the server for list
-    strReply = request_reply(sockpi, "LIST\r\n");
+    strReply = request_reply(sockpi, commandName + "\r\n");
 
     //print message
     printMessage(strReply);
@@ -179,24 +157,72 @@ int main(int argc , char *argv[])
     //request reply from the data server for the list
     strReply = reply(sockdtp);
 
-//********************************RETR to work on
-    //request reply from server for retreive
-    strReply = request_reply(sockpi, "RETR welcome.msp\r\n");
+    //print out the list
+    std::cout << strReply << std::endl;
 
-    //print out message
+    //close socket
+    strReply = request_reply(sockdtp, "QUIT\r\n");
+    std::cout << "QUITTING DATA SERVER" << std::endl;
+}
+
+int main(int argc , char *argv[])
+{
+    int sockpi;
+    int sockdtp;
+    std::string strReply;
+
+    //TODO  arg[1] can be a dns or an IP address.
+    if (argc > 2)
+        sockpi = create_connection(argv[1], atoi(argv[2]));
+    if (argc == 2)
+        sockpi = create_connection(argv[1], 21);
+    else
+        sockpi = create_connection("130.179.16.134", 21);
+    strReply = reply(sockpi);
+    std::cout << strReply  << std::endl;
+
+
+    strReply = request_reply(sockpi, "USER anonymous\r\n");
+    //TODO parse srtReply to obtain the status.
+
+    int status;
+
+    // Let the system act according to the status and display
+    // friendly message to the user
     printMessage(strReply);
 
-    //request reply from the data server for retreive
-    strReply = reply(sockdtp);
+    strReply = request_reply(sockpi, "PASS asa@asas.com\r\n");
+
 
     //print message
     printMessage(strReply);
 
+    //sockdtp = enterPassive(sockpi);
+
+    //implement LIST
+    //command(sockpi, "LIST");
+    command(sockpi, "LIST");
+
+    command(sockpi, "RETR UMINFO.AFA");
+
+    command(sockpi, "RETR welcome.msg");
+//********************************RETR to work on
+    //request reply from server for retreive
+    //strReply = request_reply(sockpi, "RETR welcome.msp\r\n");
+
+    //print out message
+    //printMessage(strReply);
+
+    //request reply from the data server for retreive
+    //strReply = reply(sockdtp);
+
+    //print message
+    //printMessage(strReply);
+
     //TODO implement PASV, LIST, RETR.
     // Hint: implement a function that set the SP in passive mode and accept commands.
 
-    //print out the list
-    std::cout << strReply << std::endl;
+    
 //*******************************************
     //quit out
     strReply = request_reply(sockpi, "QUIT\r\n");
