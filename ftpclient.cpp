@@ -1,20 +1,5 @@
 /**
-    C++ client example using sockets.
-    This programs can be compiled in linux and with minor modification in
-	   mac (mainly on the name of the headers)
-    Windows requires extra lines of code and different headers
-#define WIN32_LEAN_AND_MEAN
-
-#include <windows.h>
-#include <winsock2.h>
-#include <ws2tcpip.h>
-
-// Need to link with Ws2_32.lib, Mswsock.lib, and Advapi32.lib
-#pragma comment(lib, "Ws2_32.lib")
-...
-WSADATA wsaData;
-iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
-...
+Names:Amy Yang
 */
 #include <iostream>    //cout
 #include <string>
@@ -28,126 +13,152 @@ iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
 #include <unistd.h>
 #include <netdb.h>
 
-#define BUFFER_LENGTH 2048
-#define WAITING_TIME 1000000
+#define BUFFER_LENGTH 2048 //!<Buffer length constant
+#define WAITING_TIME 1000000 //!<Waiting time constant
 
-int create_connection(std::string host, int port)
+///
+///Creates connection to a port
+///
+int create_connection(std::string host /**< [in]host ip*/, int port /**< [in]port number*/)
 {
-    int s;
-    struct sockaddr_in saddr;
+    int s;//integer returned from socket creation
+    struct sockaddr_in saddr;//socket address
 
-    memset(&saddr,0, sizeof(saddr));
-    s = socket(AF_INET,SOCK_STREAM,0);
+    memset(&saddr,0, sizeof(saddr));//fill bytes in saddr
+    s = socket(AF_INET,SOCK_STREAM,0); //create socket
     saddr.sin_family=AF_INET;
     saddr.sin_port= htons(port);
 
-    int a1,a2,a3,a4;
-    if (sscanf(host.c_str(), "%d.%d.%d.%d", &a1, &a2, &a3, &a4 ) == 4)
+    int a1,a2,a3,a4;//ip address ports
+
+    if (sscanf(host.c_str(), "%d.%d.%d.%d", &a1, &a2, &a3, &a4 ) == 4)//delimits the ip address
     {
         std::cout << "by ip";
         saddr.sin_addr.s_addr =  inet_addr(host.c_str());
     }
-    else {
+    else //else get the address by name
+    {
         std::cout << "by name";
         hostent *record = gethostbyname(host.c_str());
         in_addr *addressptr = (in_addr *)record->h_addr;
         saddr.sin_addr = *addressptr;
     }
+
+    //connect to server, exits if there is an error
     if(connect(s,(struct sockaddr *)&saddr,sizeof(struct sockaddr))==-1)
     {
         perror("connection fail");
         exit(1);
         return -1;
     }
-    return s;
+    return s /**< [out]return integer if socket connection is created*/;
 }
 
-int request(int sock, std::string message)
+///
+///Sends a message to the server
+///
+int request(int sock /**< [in] Socket number*/, std::string message/**< [in]message to be sent to the server*/)
 {
-    return send(sock, message.c_str(), message.size(), 0);
+    return send(sock, message.c_str(), message.size(), 0); //returns size of message
 }
 
-std::string reply(int s)
+///
+///Takes the message from the server and returns thge message to the client
+///
+std::string reply(int s/**< [in]socket*/)
 {
     std::string strReply;
     int count;
     char buffer[BUFFER_LENGTH+1];
 
-    usleep(WAITING_TIME);
+    usleep(WAITING_TIME);//sleep
+
+    //get message from buffer
     do {
         count = recv(s, buffer, BUFFER_LENGTH, 0);
         buffer[count] = '\0';
         strReply += buffer;
     }while (count ==  BUFFER_LENGTH);
-    return strReply;
+
+    return strReply/**< [out]Reply from the server*/;
 }
 
-std::string request_reply(int s, std::string message)
+///
+///Requests reponse from the server
+///
+std::string request_reply(int s /**< [in] Socket number*/, std::string message/**< [in]message to be sent to the server*/)
 {
-	if (request(s, message) > 0)
-    {
+	if (request(s, message) > 0) //get reply message if there is a reply
+  {
     	return reply(s);
 	}
 	return "";
 }
 
-void printMessage (std::string strReply)
+///
+///Prints the reply message with status code
+///
+void printMessage (std::string strReply/**< [in]message to be displayed*/)
 {
   //get status code
   int status = std::stoi((strReply.substr(0,3)));
-  strReply= strReply.substr(4,strReply.length());
+  strReply= strReply.substr(4,strReply.length());//remove status code from message
+
   //print status code
   std::cout << "STATUS CODE--->" << status << std::endl;
   //print message
   std::cout << "MESSAGE--->" << strReply << std::endl;
 }
 
-int enterPassive(int sockpi)
+///
+///Enters passive mode
+///
+int enterPassive(int sockpi /**< [in]socket to server*/)
 {
-    int sockdtp;
+    int sockdtp;//socket to data server
     std::string strReply;
+
     //implement PASV
     strReply = request_reply(sockpi, "PASV\r\n");
 
     //print message
     printMessage(strReply);
+
     //get last two numbers
-
-
-
     int b1,b2,b3,b4,b5,b6;
 
-    int start = strReply.find("(");
-    int end = strReply.find(")");
-
-    //std::cout << start << ", " << end << std::endl;
-
-    std::string numbers = strReply.substr (start+1, end-start-1);
-    //std::regex_search(strReply,"\(([^\)]+)\)")
+    //only want numbers in parentheses
+    int start = strReply.find("(");//find open parentheses
+    int end = strReply.find(")");//find close parentheses
+    std::string numbers = strReply.substr (start+1, end-start-1);//list of numbers
 
     if (sscanf(numbers.c_str(), "%d,%d,%d,%d,%d,%d", &b1, &b2, &b3, &b4, &b5, &b6 ) == 6)
     {
-        std::cout << "first # " << b5 << ", second # " << b6 << std::endl;
-
+        std::cout << "first #: " << b5 << ", second #: " << b6 << std::endl;//print numbers to verify
     }
-    else {
+    else
+    {
         std::cout << "by name";
     }
 
-    int port = ((b5 << 8)|b6);
+    int port = ((b5 << 8)|b6);//get port number
 
-    std::cout << port << std::endl;
+    std::cout << "Port: " << port << std::endl; //print port number
 
-    sockdtp = create_connection("130.179.16.134", port);
-    std::cout << " works " << sockdtp << std::endl;
+    sockdtp = create_connection("130.179.16.134", port); //create connection to data server
+    std::cout << " Connection established. " << sockdtp << std::endl;
 
-    return sockdtp;
+    return sockdtp /**< [out]data server socket number*/;
 }
 
-void command(int sockpi, std::string commandName)
+///
+///Executes command to server
+///
+void command(int sockpi /**< [in] socket to server*/, std::string commandName /**< [in] name of command*/)
 {
-    int sockdtp = enterPassive(sockpi);
+    int sockdtp = enterPassive(sockpi);//gets the socket for data server after entering passive mode
     std::string strReply;
+
     //request reply from the server for list
     strReply = request_reply(sockpi, commandName + "\r\n");
 
@@ -162,7 +173,8 @@ void command(int sockpi, std::string commandName)
 
     //close socket
     strReply = request_reply(sockdtp, "QUIT\r\n");
-    std::cout << "QUITTING DATA SERVER" << std::endl;
+  //  strReply = request_reply(sockpi, "QUIT\r\n");
+
 }
 
 int main(int argc , char *argv[])
@@ -197,33 +209,11 @@ int main(int argc , char *argv[])
     //print message
     printMessage(strReply);
 
-    //sockdtp = enterPassive(sockpi);
+    command(sockpi, "LIST"); //Execute LIST command
 
-    //implement LIST
-    //command(sockpi, "LIST");
-    command(sockpi, "LIST");
+    command(sockpi, "RETR UMINFO.AFA"); //Execute retreive
 
-    command(sockpi, "RETR UMINFO.AFA");
-
-    command(sockpi, "RETR welcome.msg");
-//********************************RETR to work on
-    //request reply from server for retreive
-    //strReply = request_reply(sockpi, "RETR welcome.msp\r\n");
-
-    //print out message
-    //printMessage(strReply);
-
-    //request reply from the data server for retreive
-    //strReply = reply(sockdtp);
-
-    //print message
-    //printMessage(strReply);
-
-    //TODO implement PASV, LIST, RETR.
-    // Hint: implement a function that set the SP in passive mode and accept commands.
-
-    
-//*******************************************
+    command(sockpi, "RETR welcome.msg"); //Execute retreive
     //quit out
     strReply = request_reply(sockpi, "QUIT\r\n");
 
