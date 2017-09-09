@@ -1,5 +1,6 @@
 /**
-Names:Amy Yang
+@brief This project functions as an FTP client
+@author Amy Yang
 */
 #include <iostream>    //cout
 #include <string>
@@ -13,13 +14,16 @@ Names:Amy Yang
 #include <unistd.h>
 #include <netdb.h>
 
-#define BUFFER_LENGTH 2048 //!<Buffer length constant
-#define WAITING_TIME 1000000 //!<Waiting time constant
+#define BUFFER_LENGTH 2048 //Buffer length constant
+#define WAITING_TIME 1000000 //Waiting time constant
 
-///
-///Creates connection to a port
-///
-int create_connection(std::string host /**< [in]host ip*/, int port /**< [in]port number*/)
+/**
+  Creates connection to a port
+  @param host host ip
+  @param port port number
+  @return socket number
+*/
+int create_connection(std::string host, int port )
 {
     int s;//integer returned from socket creation
     struct sockaddr_in saddr;//socket address
@@ -51,21 +55,26 @@ int create_connection(std::string host /**< [in]host ip*/, int port /**< [in]por
         exit(1);
         return -1;
     }
-    return s /**< [out]return integer if socket connection is created*/;
+    return s ;
 }
 
-///
-///Sends a message to the server
-///
-int request(int sock /**< [in] Socket number*/, std::string message/**< [in]message to be sent to the server*/)
+/**
+  Sends a message to the server
+  @param sock Socket number
+  @param message message to be sent to the server
+  @return Size of message
+*/
+int request(int sock , std::string message)
 {
     return send(sock, message.c_str(), message.size(), 0); //returns size of message
 }
 
-///
-///Takes the message from the server and returns thge message to the client
-///
-std::string reply(int s/**< [in]socket*/)
+/**
+  Takes the message from the server and returns thge message to the client
+  @param s socket NUMBER
+  @return Reply from the server
+*/
+std::string reply(int s)
 {
     std::string strReply;
     int count;
@@ -80,13 +89,16 @@ std::string reply(int s/**< [in]socket*/)
         strReply += buffer;
     }while (count ==  BUFFER_LENGTH);
 
-    return strReply/**< [out]Reply from the server*/;
+    return strReply;
 }
 
-///
-///Requests reponse from the server
-///
-std::string request_reply(int s /**< [in] Socket number*/, std::string message/**< [in]message to be sent to the server*/)
+/**
+  Requests reponse from the server
+  @param s Socket number
+  @param message Message to be sent to the server
+  @return String messsage or empty string
+*/
+std::string request_reply(int s, std::string message)
 {
 	if (request(s, message) > 0) //get reply message if there is a reply
   {
@@ -95,10 +107,11 @@ std::string request_reply(int s /**< [in] Socket number*/, std::string message/*
 	return "";
 }
 
-///
-///Prints the reply message with status code
-///
-void printMessage (std::string strReply/**< [in]message to be displayed*/)
+/**
+  Prints the reply message with status code
+  @param strReply message to be displayed
+*/
+void printMessage (std::string strReply)
 {
   //get status code
   int status = std::stoi((strReply.substr(0,3)));
@@ -110,10 +123,12 @@ void printMessage (std::string strReply/**< [in]message to be displayed*/)
   std::cout << "MESSAGE--->" << strReply << std::endl;
 }
 
-///
-///Enters passive mode
-///
-int enterPassive(int sockpi /**< [in]socket to server*/)
+/**
+  Enters passive mode
+  @param sockpi socket to server
+  @return data server socket number
+*/
+int enterPassive(int sockpi)
 {
     int sockdtp;//socket to data server
     std::string strReply;
@@ -148,13 +163,15 @@ int enterPassive(int sockpi /**< [in]socket to server*/)
     sockdtp = create_connection("130.179.16.134", port); //create connection to data server
     std::cout << " Connection established. " << sockdtp << std::endl;
 
-    return sockdtp /**< [out]data server socket number*/;
+    return sockdtp ;
 }
 
-///
-///Executes command to server
-///
-void command(int sockpi /**< [in] socket to server*/, std::string commandName /**< [in] name of command*/)
+/**
+  Executes command to server
+  @param sockpi Socket to server
+  @param commandName Name of command
+*/
+void command(int sockpi , std::string commandName )
 {
     int sockdtp = enterPassive(sockpi);//gets the socket for data server after entering passive mode
     std::string strReply;
