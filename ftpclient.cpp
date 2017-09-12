@@ -111,7 +111,7 @@ std::string request_reply(int s, std::string message)
   Prints the reply message with status code
   @param strReply message to be displayed
 */
-void printMessage (std::string strReply)
+int printMessage (std::string strReply)
 {
   //get status code
   int status = std::stoi((strReply.substr(0,3)));
@@ -121,6 +121,7 @@ void printMessage (std::string strReply)
   std::cout << "STATUS CODE--->" << status << std::endl;
   //print message
   std::cout << "MESSAGE--->" << strReply << std::endl;
+  return status;
 }
 
 /**
@@ -180,16 +181,22 @@ void command(int sockpi , std::string commandName )
     strReply = request_reply(sockpi, commandName + "\r\n");
 
     //print message
-    printMessage(strReply);
+    int status = printMessage(strReply);
 
-    //request reply from the data server for the list
-    strReply = reply(sockdtp);
+    if (status == 150) {
+      //request reply from the data server for the list
+      strReply = reply(sockdtp);
 
-    //print out the list
-    std::cout << strReply << std::endl;
+      //print out the list
+      std::cout << strReply << std::endl;
+    } else {
+      close(sockdtp);
+      return;
+    }
 
     //close socket
-    strReply = request_reply(sockdtp, "QUIT\r\n");
+    //strReply = request_reply(sockdtp, "QUIT\r\n");
+    close(sockdtp);
     //strReply = request_reply(sockpi, "QUIT\r\n");
     strReply = reply(sockpi);
 
@@ -255,6 +262,12 @@ int main(int argc , char *argv[])
                      std::string filename;
                      std::cin >> filename;
                      command(sockpi, "RETR " + filename); }
+                     break;
+            case 3 : {
+                     std::cout << "Enter folder name: " << std::endl;
+                     std::string foldername;
+                     std::cin >> foldername;
+                     command(sockpi, "cd " + foldername); }
                      break;
             default: std::cout << "OOPS" << std::endl; break; 
         }
