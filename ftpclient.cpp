@@ -190,7 +190,12 @@ void command(int sockpi , std::string commandName )
 
     //close socket
     strReply = request_reply(sockdtp, "QUIT\r\n");
-  //  strReply = request_reply(sockpi, "QUIT\r\n");
+    //strReply = request_reply(sockpi, "QUIT\r\n");
+    strReply = reply(sockpi);
+
+    std::cout << "QUIT MESSAGE" << std::endl;
+    printMessage(strReply);
+    std::cout << "QUIT MESSAGE" << std::endl;
 
 }
 
@@ -208,8 +213,8 @@ int main(int argc , char *argv[])
     else
         sockpi = create_connection("130.179.16.134", 21);
     strReply = reply(sockpi);
-    std::cout << strReply  << std::endl;
-
+    //std::cout << strReply  << std::endl;
+    printMessage(strReply);
 
     strReply = request_reply(sockpi, "USER anonymous\r\n");
     //TODO parse srtReply to obtain the status.
@@ -225,7 +230,35 @@ int main(int argc , char *argv[])
 
     //print message
     printMessage(strReply);
+    bool isRunning = true;
+    while (isRunning)
+    {
+        std::cout << "Enter choice to choose a command" << std::endl;
+        std::cout << "1. LIST" << std::endl;
+        std::cout << "2. RETR" << std::endl;
+        std::cout << "3. CD" << std::endl;
+        std::cout << "4. QUIT" << std::endl;
 
+        int input;
+        std::cin >> input;
+        
+        if(std::cin.fail()) {
+	    std::cin.clear();
+            std::cin.ignore();
+            input = 0;
+        }
+        switch(input) {
+            case 1 : command(sockpi, "LIST"); //Execute LIST command
+                     break;
+            case 2 : {
+                     std::cout << "Enter the file name to retrieve: " << std::endl;
+                     std::string filename;
+                     std::cin >> filename;
+                     command(sockpi, "RETR " + filename); }
+                     break;
+            default: std::cout << "OOPS" << std::endl; break; 
+        }
+    }
     command(sockpi, "LIST"); //Execute LIST command
 
     command(sockpi, "RETR UMINFO.AFA"); //Execute retreive
