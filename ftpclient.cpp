@@ -191,6 +191,8 @@ void command(int sockpi , std::string commandName )
       std::cout << strReply << std::endl;
     } else {
       close(sockdtp);
+      //strReply = reply(sockpi);
+      //std::cout << strReply << std::endl;
       return;
     }
 
@@ -267,16 +269,19 @@ int main(int argc , char *argv[])
                      std::cout << "Enter folder name: " << std::endl;
                      std::string foldername;
                      std::cin >> foldername;
-                     command(sockpi, "cd " + foldername); }
+                     command(sockpi, "CD " + foldername); }
+                     break;
+            case 4 : {
+                     isRunning = false; }
                      break;
             default: std::cout << "OOPS" << std::endl; break; 
         }
     }
-    command(sockpi, "LIST"); //Execute LIST command
+    //command(sockpi, "LIST"); //Execute LIST command
 
-    command(sockpi, "RETR UMINFO.AFA"); //Execute retreive
+    //command(sockpi, "RETR UMINFO.AFA"); //Execute retreive
 
-    command(sockpi, "RETR welcome.msg"); //Execute retreive
+    //command(sockpi, "RETR welcome.msg"); //Execute retreive
     //quit out
     strReply = request_reply(sockpi, "QUIT\r\n");
 
