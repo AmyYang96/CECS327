@@ -269,7 +269,7 @@ int main(int argc , char *argv[])
                      std::cout << "Enter folder name: " << std::endl;
                      std::string foldername;
                      std::cin >> foldername;
-                     command(sockpi, "CD " + foldername); }
+                     command(sockpi, "CWD " + foldername); }
                      break;
             case 4 : {
                      isRunning = false; }
