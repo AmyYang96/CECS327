@@ -3,6 +3,7 @@
 @author Amy Yang
 */
 #include <iostream>    //cout
+#include <fstream>
 #include <string>
 #include <stdio.h> //printf
 #include <stdlib.h>
@@ -14,8 +15,9 @@
 #include <unistd.h>
 #include <netdb.h>
 
+
 #define BUFFER_LENGTH 2048 //Buffer length constant
-#define WAITING_TIME 1000000 //Waiting time constant
+#define WAITING_TIME 500000 //Waiting time constant
 
 /**
   Creates connection to a port
@@ -189,23 +191,22 @@ void command(int sockpi , std::string commandName )
 
       //print out the list
       std::cout << strReply << std::endl;
+      if(commandName.substr(0,4).compare("RETR") == 0)
+      {
+          std::ofstream file;
+          file.open(commandName.substr(4,commandName.length()));
+          file << strReply;
+          file.close();
+      }
+      //close socket
+      close(sockdtp);
+      strReply = reply(sockpi);
+
+      printMessage(strReply); //message to quit
+
     } else {
       close(sockdtp);
-      //strReply = reply(sockpi);
-      //std::cout << strReply << std::endl;
-      return;
     }
-
-    //close socket
-    //strReply = request_reply(sockdtp, "QUIT\r\n");
-    close(sockdtp);
-    //strReply = request_reply(sockpi, "QUIT\r\n");
-    strReply = reply(sockpi);
-
-    std::cout << "QUIT MESSAGE" << std::endl;
-    printMessage(strReply);
-    std::cout << "QUIT MESSAGE" << std::endl;
-
 }
 
 int main(int argc , char *argv[])
@@ -214,7 +215,6 @@ int main(int argc , char *argv[])
     int sockdtp;
     std::string strReply;
 
-    //TODO  arg[1] can be a dns or an IP address.
     if (argc > 2)
         sockpi = create_connection(argv[1], atoi(argv[2]));
     if (argc == 2)
@@ -222,11 +222,10 @@ int main(int argc , char *argv[])
     else
         sockpi = create_connection("130.179.16.134", 21);
     strReply = reply(sockpi);
-    //std::cout << strReply  << std::endl;
+
     printMessage(strReply);
 
     strReply = request_reply(sockpi, "USER anonymous\r\n");
-    //TODO parse srtReply to obtain the status.
 
     int status;
 
@@ -235,7 +234,6 @@ int main(int argc , char *argv[])
     printMessage(strReply);
 
     strReply = request_reply(sockpi, "PASS asa@asas.com\r\n");
-
 
     //print message
     printMessage(strReply);
@@ -247,6 +245,7 @@ int main(int argc , char *argv[])
         std::cout << "2. RETR" << std::endl;
         std::cout << "3. CD" << std::endl;
         std::cout << "4. QUIT" << std::endl;
+        std::cout << "5. Help" << std::endl;
 
         int input;
         std::cin >> input;
@@ -262,26 +261,29 @@ int main(int argc , char *argv[])
             case 2 : {
                      std::cout << "Enter the file name to retrieve: " << std::endl;
                      std::string filename;
-                     std::cin >> filename;
+                     std::cin.ignore();
+                     std::getline (std::cin, filename, '\n');
                      command(sockpi, "RETR " + filename); }
                      break;
             case 3 : {
                      std::cout << "Enter folder name: " << std::endl;
                      std::string foldername;
-                     std::cin >> foldername;
+                     std::cin.ignore();
+                     std::getline (std::cin, foldername, '\n');
                      command(sockpi, "CWD " + foldername); }
                      break;
             case 4 : {
                      isRunning = false; }
                      break;
-            default: std::cout << "OOPS" << std::endl; break; 
+            case 5 : {
+                     std::cout << "\nLIST lists all of the files and folders in the current directory" << std::endl;
+                     std::cout << "RETR retrieves a file from the current directory, displays the contents, and save it locally" << std::endl;
+                     std::cout << "CD changes the working directory" << std::endl;
+                     std::cout << "QUIT quits the program\n" << std::endl; break; }
+            default: std::cout << "\nPlese enter a valid input.\n" << std::endl; break; 
         }
     }
-    //command(sockpi, "LIST"); //Execute LIST command
 
-    //command(sockpi, "RETR UMINFO.AFA"); //Execute retreive
-
-    //command(sockpi, "RETR welcome.msg"); //Execute retreive
     //quit out
     strReply = request_reply(sockpi, "QUIT\r\n");
 
