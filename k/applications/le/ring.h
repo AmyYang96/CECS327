@@ -1,3 +1,4 @@
+//using namespace std;
 #define MAX_NUM_NEIGHBORS 10
 #define SHARING_TIME 20
 
@@ -26,7 +27,8 @@ typedef enum { NULL_MSG,
     SHARE,
     JOIN,
     LEAVE,
-    ELECTION
+    ELECTION,
+    ELECTED
 } message_type;  // MESSAGES
 
 typedef enum {
@@ -67,7 +69,7 @@ typedef struct
     uint8_t my_left;
     message_t msg;
     robot_state state;
-    
+
     uint8_t num_neighbors;
     uint8_t message_sent;
     uint16_t now;
@@ -80,9 +82,11 @@ typedef struct
     motion_time_t move_motion[3];
     int8_t send_election;
     int8_t is_leader;
-    int8_t my_leader;
+    uint8_t my_leader;
     uint8_t green;
     uint8_t red;
     uint8_t blue;
-    
+
+    uint8_t m;
+
 } USERDATA;
