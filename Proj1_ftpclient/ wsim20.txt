@@ -1,0 +1,27 @@
+WSIMTEL 2.0 - Simtel/CICA and others index search program for Windows
+
+This program can handle index files from simtel20 (SIMIBM.IDX), cica (INDEX) and
+the Simtel20 CD-ROM (INDEX.TXT).  A DBASE III file is created from these files 
+and this dbf file can be searched with this program.  All you need is wsimtel
+and an index file!!
+
+Fast searches can be done for:
+	
+	filename
+	directory	a listing of the available directories can be shown
+	description
+	date		from date to date
+
+Output is done with user configurable scripts.
+Scripts are included for output to file, printer, clipboard and to AutoFTP
+format.
+
+Indexes are imported with import filter dll's.  If you are a programmer you can
+write import filters for additional indexes.
+
+This program is free, but registration is encouraged.
+
+Hans van Oostrom, author.
+
+hans@pine.circa.ufl.edu
+1/30/92

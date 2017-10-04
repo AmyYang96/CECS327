@@ -1,0 +1,8 @@
+/usr/local/lib/libsim.a
+/usr/local/lib/libheadless.a
+/usr/local/include/kilombo.h
+/usr/local/include/kilombo/kilolib.h
+/usr/local/include/kilombo/message.h
+/usr/local/include/kilombo/message_crc.h
+/usr/local/include/kilombo/params.h
+/usr/local/include/kilombo/skilobot.h
