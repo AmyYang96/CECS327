@@ -35,28 +35,23 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
     }
     
     
-    public void put(long guidObject, InputStream stream) throws RemoteException 
-    {
-      try 
-      {
-	          String fileName = "./"+guid+"/repository/" + guidObject;
-	          FileOutputStream output = new FileOutputStream(fileName);
-	          while (stream.available() > 0)
-	              output.write(stream.read());
-	          output.close();
+    public void put(long guidObject, InputStream stream) throws RemoteException {
+      try {
+          String fileName = "./"+guid+"/repository/" + guidObject;
+          FileOutputStream output = new FileOutputStream(fileName);
+          while (stream.available() > 0)
+              output.write(stream.read());
+          output.close();
       }
-      catch (IOException e) 
-      {
+      catch (IOException e) {
           System.out.println(e);
       }
     }
     
     
-    public InputStream get(long guidObject) throws RemoteException 
-    {
+    public InputStream get(long guidObject) throws RemoteException {
         FileStream file = null;
-        try 
-        {
+        try {
              file = new FileStream("./"+guid+"/repository/" + guidObject);
         } catch (IOException e)
         {
@@ -65,28 +60,23 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
         return file;
     }
     
-    public void delete(long guidObject) throws RemoteException 
-    {
+    public void delete(long guidObject) throws RemoteException {
         File file = new File("./"+guid+"/repository/" + guidObject);
         file.delete();
     }
     
-    public long getId() throws RemoteException 
-    {
+    public long getId() throws RemoteException {
         return guid;
     }
-    public boolean isAlive() throws RemoteException 
-    {
+    public boolean isAlive() throws RemoteException {
 	    return true;
     }
     
-    public ChordMessageInterface getPredecessor() throws RemoteException 
-    {
+    public ChordMessageInterface getPredecessor() throws RemoteException {
 	    return predecessor;
     }
     
-    public ChordMessageInterface locateSuccessor(long key) throws RemoteException 
-    {
+    public ChordMessageInterface locateSuccessor(long key) throws RemoteException {
 	    if (key == guid)
             throw new IllegalArgumentException("Key must be distinct that  " + guid);
 	    if (successor.getId() != guid)
@@ -102,23 +92,17 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
         return successor;
     }
     
-    public ChordMessageInterface closestPrecedingNode(long key) throws RemoteException 
-    {
+    public ChordMessageInterface closestPrecedingNode(long key) throws RemoteException {
         // todo
-        if(key != guid) 
-        {
+        if(key != guid) {
             int i = M - 1;
-            while (i >= 0) 
-            {
-                try
-                {
+            while (i >= 0) {
+                try{
        
-                    if(isKeyInSemiCloseInterval(finger[i].getId(), guid, key)) 
-                    {
+                    if(isKeyInSemiCloseInterval(finger[i].getId(), guid, key)) {
                         if(finger[i].getId() != key)
                             return finger[i];
-                        else 
-                        {
+                        else {
                             return successor;
                         }
                     }
@@ -133,10 +117,8 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
         return successor;
     }
     
-    public void joinRing(String ip, int port)  throws RemoteException 
-    {
-        try
-        {
+    public void joinRing(String ip, int port)  throws RemoteException {
+        try{
             System.out.println("Get Registry to joining ring");
             Registry registry = LocateRegistry.getRegistry(ip, port);
             ChordMessageInterface chord = (ChordMessageInterface)(registry.lookup("Chord"));
@@ -144,8 +126,7 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
             successor = chord.locateSuccessor(this.getId());
             System.out.println("Joining ring");
         }
-        catch(RemoteException | NotBoundException e)
-        {
+        catch(RemoteException | NotBoundException e){
             successor = this;
         }   
     }
@@ -170,8 +151,7 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
         }
     }
     
-    public void stabilize() 
-    {
+    public void stabilize() {
       try {
           if (successor != null)
           {
@@ -186,47 +166,38 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
                   successor.notify(this);
               }
           }
-      } catch(RemoteException | NullPointerException e1) 
-      {
+      } catch(RemoteException | NullPointerException e1) {
           findingNextSuccessor();
 
       }
     }
     
-    public void notify(ChordMessageInterface j) throws RemoteException 
-    {
+    public void notify(ChordMessageInterface j) throws RemoteException {
          if (predecessor == null || (predecessor != null
                     && isKeyInOpenInterval(j.getId(), predecessor.getId(), guid)))
              predecessor = j;
-            try 
-            {
+            try {
                 File folder = new File("./"+guid+"/repository/");
                 File[] files = folder.listFiles();
-                for (File file : files) 
-                {
+                for (File file : files) {
                     long guidObject = Long.valueOf(file.getName());
-                    if(guidObject < predecessor.getId() && predecessor.getId() < guid) 
-                    {
+                    if(guidObject < predecessor.getId() && predecessor.getId() < guid) {
                         predecessor.put(guidObject, new FileStream(file.getPath()));
                         file.delete();
                     }
                 }
-                } catch (ArrayIndexOutOfBoundsException e) 
-            {
+                } catch (ArrayIndexOutOfBoundsException e) {
                 //happens sometimes when a new file is added during foreach loop
-            } catch (IOException e) 
-            {
+            } catch (IOException e) {
             e.printStackTrace();
         }
 
     }
     
-    public void fixFingers() 
-    {
+    public void fixFingers() {
     
         long id= guid;
-        try 
-        {
+        try {
             long nextId = this.getId() + 1<< (nextFinger+1);
             finger[nextFinger] = locateSuccessor(nextId);
 	    
@@ -235,16 +206,13 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
             else
                 nextFinger = (nextFinger + 1) % M;
         }
-        catch(RemoteException | NullPointerException e)
-        {
+        catch(RemoteException | NullPointerException e){
             e.printStackTrace();
         }
     }
     
-    public void checkPredecessor() 
-    { 	
-      try 
-      {
+    public void checkPredecessor() { 	
+      try {
           if (predecessor != null && !predecessor.isAlive())
               predecessor = null;
       } 
@@ -255,12 +223,10 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
       }
     }
        
-    public Chord(int port, long guid) throws RemoteException 
-    {
+    public Chord(int port, long guid) throws RemoteException {
         int j;
 	    finger = new ChordMessageInterface[M];
-        for (j=0;j<M; j++)
-        {
+        for (j=0;j<M; j++){
 	       finger[j] = null;
      	}
         this.guid = guid;
@@ -268,18 +234,15 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
         predecessor = null;
         successor = this;
         Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() 
-        {
+        timer.scheduleAtFixedRate(new TimerTask() {
 	    @Override
-	    public void run() 
-	    {
+	    public void run() {
             stabilize();
             fixFingers();
             checkPredecessor();
             }
         }, 500, 500);
-        try
-        {
+        try{
             // create the registry and bind the name and object.
             System.out.println(guid + " is starting RMI at port="+port);
             registry = LocateRegistry.createRegistry( port );
