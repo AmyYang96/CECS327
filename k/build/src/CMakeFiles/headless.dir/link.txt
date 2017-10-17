@@ -1,0 +1,2 @@
+/usr/bin/ar qc libheadless.a  CMakeFiles/headless.dir/skilobot.c.o CMakeFiles/headless.dir/kbapi.c.o CMakeFiles/headless.dir/params.c.o CMakeFiles/headless.dir/stateio.c.o CMakeFiles/headless.dir/runsim.c.o CMakeFiles/headless.dir/neighbors.c.o CMakeFiles/headless.dir/distribution.c.o
+/usr/bin/ranlib libheadless.a
