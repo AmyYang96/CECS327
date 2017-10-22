@@ -6,7 +6,11 @@ import java.math.BigInteger;
 import java.security.*;
 import java.nio.file.*;
 
-
+/**
+* @author Amy Yang
+* @author Tiler Dao
+* @author Christian Eirik Blydt-Hansen
+*/
 public class Client {
     DFS dfs;
     public Client(int p) throws Exception {

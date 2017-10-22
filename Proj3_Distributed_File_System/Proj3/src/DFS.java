@@ -5,8 +5,7 @@ import java.io.*;
 import java.nio.file.*;
 import java.math.BigInteger;
 import java.security.*;
-import com.google.gson.*;
-// import a json package
+import com.google.gson.*;  // imported a json package
 
 
 /* JSON Format
@@ -45,7 +44,11 @@ import com.google.gson.*;
  
  */
 
-
+/**
+* @author Amy Yang
+* @author Tiler Dao
+* @author Christian Eirik Blydt-Hansen
+*/
 public class DFS
 {
     int port;

@@ -1,11 +1,27 @@
 import java.io.*;
 import java.nio.*;
 
-public class FileStream extends InputStream implements Serializable {
+/**
+* @author Amy Yang
+* @author Tiler Dao
+* @author Christian Eirik Blydt-Hansen 
+* This class contains methods to read files in the DFS
+*/
+public class FileStream extends InputStream implements  Serializable {
   
+    /** Represents the cirrent positions in the file*/
     private int currentPosition;
+
+     /** Represents the data from file*/
     private byte[] byteBuffer;
+
+    /** Represents the file size*/
     private int size;
+
+    /** 
+    * Constructor that reads the data from file into byte array
+    * @param pathName – path to the file
+    */
     public  FileStream(String pathName) throws FileNotFoundException, IOException    
     {
       File file = new File(pathName);
@@ -22,11 +38,18 @@ public class FileStream extends InputStream implements Serializable {
       currentPosition = 0;	  
     }
     
+    /** 
+    * Constructor that sets current position to = 0
+    */
     public  FileStream() throws FileNotFoundException    
     {
       currentPosition = 0;	  
     }
     
+    /**
+    * Reads from file
+    * @return content in byte buffer
+    */
     public int read() throws IOException
     {
 	 	if (currentPosition < size)
@@ -34,6 +57,10 @@ public class FileStream extends InputStream implements Serializable {
 	 	return 0;
     }
     
+    /**
+    * Checks if current position is still within array
+    * @return size - currentPosition
+    */
     public int available() throws IOException
     {
     	return size - currentPosition;

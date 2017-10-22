@@ -4,20 +4,41 @@ import java.rmi.server.*;
 import java.net.*;
 import java.util.*;
 import java.io.*;
-
-
+/**
+* @author Amy Yang
+* @author Tiler Dao
+* @author Christian Eirik Blydt-Hansen
+* This class represents a Peer to Peer system
+*/
 public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordMessageInterface
 {
     public static final int M = 2;
     
-    Registry registry;    // rmi registry for lookup the remote objects.
+    /** rmi registry for lookup the remote objects.*/
+    Registry registry;    
+
+    /** Represents the node's sucessor*/
     ChordMessageInterface successor;
+
+    /** Represents the node's predecessor*/
     ChordMessageInterface predecessor;
+
+    /** Represents the node's pointers*/
     ChordMessageInterface[] finger;
+
+    /** Represents the node's next pointer*/
     int nextFinger;
-    long guid;   		// GUID (i)
+
+    /** Represents the node's GUID*/
+    long guid;   	
     
-    
+    /**
+    * Checks if two nodes are close to eack other in a semi-closed interval
+    * @param key – distance
+    * @param key1 – first key
+    * @param key2 – second key
+    * @return true if they are close, otherwise false 
+    */
     public Boolean isKeyInSemiCloseInterval(long key, long key1, long key2)
     {
        if (key1 < key2)
@@ -26,6 +47,14 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
           return (key > key1 || key <= key2);
     }
 
+
+    /**
+    * Checks if two nodes are close to eack other in an open interval
+    * @param key – distance
+    * @param key1 – first key
+    * @param key2 – second key
+    * @return true if they are close, otherwise false 
+    */
     public Boolean isKeyInOpenInterval(long key, long key1, long key2)
     {
       if (key1 < key2)
@@ -34,7 +63,11 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
           return (key > key1 || key < key2);
     }
     
-    
+    /**
+    * Stores data in the processor responsible for storing the object
+    * @param guidObject – processor ID
+    * @param stream  – data to be stored
+    */
     public void put(long guidObject, InputStream stream) throws RemoteException 
     {
       try 
@@ -51,7 +84,11 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
       }
     }
     
-    
+    /**
+    * Retrieves the data associated with GUID from one of the nodes responsible for it
+    * @param guidObject – processor ID
+    * @return data in a file
+    */
     public InputStream get(long guidObject) throws RemoteException 
     {
         FileStream file = null;
@@ -65,26 +102,49 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
         return file;
     }
     
+    /**
+    * Deletes  all  references  to  GUID  and  the  associated data
+    * @param guidObject – processor ID
+    */
     public void delete(long guidObject) throws RemoteException 
     {
         File file = new File("./"+guid+"/repository/" + guidObject);
         file.delete();
     }
     
+    /**
+    * Gets the guid
+    * @return guid of a node
+    */
     public long getId() throws RemoteException 
     {
         return guid;
     }
+
+    /**
+    * Checks if a node is still active in the connection
+    * @return true
+    */
     public boolean isAlive() throws RemoteException 
     {
 	    return true;
     }
     
+
+    /**
+    * Get predecessor node
+    * @return predecessor node
+    */
     public ChordMessageInterface getPredecessor() throws RemoteException 
     {
 	    return predecessor;
     }
     
+    /**
+    * Locates a successor node's GUID in the ring
+    * @param key – GUID of the predecessor
+    * @return successor node's GUID in the ring
+    */
     public ChordMessageInterface locateSuccessor(long key) throws RemoteException 
     {
 	    if (key == guid)
@@ -102,6 +162,11 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
         return successor;
     }
     
+    /**
+    * Gets the closest preceding node
+    * @param key – current node's GUID
+    * @return closest preceding node
+    */
     public ChordMessageInterface closestPrecedingNode(long key) throws RemoteException 
     {
         // todo
@@ -133,6 +198,12 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
         return successor;
     }
     
+
+    /**
+    * Joins a peer to the ring
+    * @param ip – peer's ip address
+    * @param port – port number
+    */
     public void joinRing(String ip, int port)  throws RemoteException 
     {
         try
@@ -150,6 +221,9 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
         }   
     }
     
+    /**
+    * Finds the next successor node
+    */
     public void findingNextSuccessor()
     {
         int i;
@@ -170,6 +244,9 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
         }
     }
     
+    /**
+    * Balances the ring
+    */
     public void stabilize() 
     {
       try {
@@ -193,6 +270,10 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
       }
     }
     
+    /**
+    * Sends a message and notifies a peer
+    * @param j – node to be notified
+    */
     public void notify(ChordMessageInterface j) throws RemoteException 
     {
          if (predecessor == null || (predecessor != null
@@ -221,6 +302,9 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
 
     }
     
+    /**
+    * Updates finger position
+    */
     public void fixFingers() 
     {
     
@@ -240,7 +324,10 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
             e.printStackTrace();
         }
     }
-    
+
+    /**
+    * Checks if predecessor is active
+    */
     public void checkPredecessor() 
     { 	
       try 
@@ -254,7 +341,12 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
 //           e.printStackTrace();
       }
     }
-       
+    
+     /**
+    * Constructor for a Chord object
+    * @param port – port number
+    * @param guid – node id
+    */   
     public Chord(int port, long guid) throws RemoteException 
     {
         int j;
@@ -290,6 +382,9 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
         } 
     }
     
+    /**
+    *  Print the state of the systems.
+    */
     void Print()
     {   
         int i;
