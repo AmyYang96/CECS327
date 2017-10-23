@@ -23,7 +23,7 @@ public class Client {
 
         boolean isRunning = true;
 
-        while(isRunning) {
+        while(isRunning==true) {
             System.out.println("\nEnter a command");
             System.out.println("1. join");
             System.out.println("2. ls");
@@ -71,12 +71,15 @@ public class Client {
                     break;
                 case "0":
                     //quit
-                    isRunning = false;
+                    
+                    //isRunning = false;
+                    System.exit(0);
                     break;
                 default:
                     System.out.println("Invalid input");
             }
         }
+      //  System.out.println("out");
     }
     
     static public void main(String args[]) throws Exception {
@@ -84,5 +87,6 @@ public class Client {
             throw new IllegalArgumentException("Parameter: <port>");
         }
         Client client=new Client( Integer.parseInt(args[0]));
+
      } 
 }
