@@ -56,21 +56,21 @@ public interface ChordMessageInterface extends Remote
         
     /**
     * Stores data in the processor responsible for storing the object
-    * @param guidObject – processor ID
+    * @param guidObject –file name
     * @param stream  – data to be stored
     */
     public void put(long guidObject, InputStream inputStream) throws IOException, RemoteException;
     
     /**
     * Retrieves the data associated with GUID from one of the nodes responsible for it
-    * @param guidObject – processor ID
+    * @param guidObject –file name
     * @return data in a file
     */
     public InputStream get(long guidObject) throws IOException, RemoteException;
     
     /**
     * Deletes  all  references  to  GUID  and  the  associated data
-    * @param guidObject – processor ID
+    * @param guidObject –file name
     */
     public void delete(long guidObject) throws IOException, RemoteException;
 }

@@ -6,7 +6,7 @@ import java.nio.file.*;
 import java.math.BigInteger;
 import java.security.*;
 import com.google.gson.*;  // imported a json package
-
+import com.google.gson.stream.JsonReader;
 
 /* JSON Format
 
@@ -89,16 +89,15 @@ public class DFS
         chord.Print();
     }
     
-    /*public JSonParser readMetaData() throws Exception
+    public JsonReader readMetaData() throws Exception
     {
-        JsonParser jsonParser _ null;
         long guid = md5("Metadata");
         ChordMessageInterface peer = chord.locateSuccessor(guid);
         InputStream metadataraw = peer.get(guid);
-        // jsonParser = Json.createParser(metadataraw);
-        return jsonParser;
+        JsonReader reader = new JsonReader(new InputStreamReader(metadataraw, "UTF-8"));
+        return reader;
     }
-    
+    /*
     public void writeMetaData(InputStream stream) throws Exception
     {
         JsonParser jsonParser _ null;

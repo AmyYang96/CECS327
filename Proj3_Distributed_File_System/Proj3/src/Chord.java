@@ -65,7 +65,7 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
     
     /**
     * Stores data in the processor responsible for storing the object
-    * @param guidObject – processor ID
+    * @param guidObject –filename 
     * @param stream  – data to be stored
     */
     public void put(long guidObject, InputStream stream) throws RemoteException 
@@ -86,7 +86,7 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
     
     /**
     * Retrieves the data associated with GUID from one of the nodes responsible for it
-    * @param guidObject – processor ID
+    * @param guidObject – file name
     * @return data in a file
     */
     public InputStream get(long guidObject) throws RemoteException 
@@ -104,7 +104,7 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
     
     /**
     * Deletes  all  references  to  GUID  and  the  associated data
-    * @param guidObject – processor ID
+    * @param guidObject – file name
     */
     public void delete(long guidObject) throws RemoteException 
     {
