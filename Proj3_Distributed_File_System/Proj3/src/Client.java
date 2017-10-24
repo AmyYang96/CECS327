@@ -47,6 +47,7 @@ public class Client {
                     break;
                 case "2":
                     //ls
+                    dfs.ls();
                     break;
                 case "3":
                     //touch

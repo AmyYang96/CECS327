@@ -7,7 +7,7 @@ import java.math.BigInteger;
 import java.security.*;
 import com.google.gson.*;  // imported a json package
 import com.google.gson.stream.JsonReader;
-
+import com.google.gson.stream.JsonWriter;
 /* JSON Format
 
  {
@@ -97,14 +97,54 @@ public class DFS
         JsonReader reader = new JsonReader(new InputStreamReader(metadataraw, "UTF-8"));
         return reader;
     }
-    /*
+    
+    //to do
     public void writeMetaData(InputStream stream) throws Exception
     {
-        JsonParser jsonParser _ null;
+       // JsonWriter writer = new JsonWriter(new FileWriter("metadata.json"));
         long guid = md5("Metadata");
         ChordMessageInterface peer = chord.locateSuccessor(guid);
         peer.put(guid, stream);
-    }*/
+      //  writer.beginObject();
+        //writer.name("Metadata");
+       // writer.beginArray();
+        //writeFile();
+    }
+    
+    public void writeFile(JsonWriter writer, String filename, long guid, InputStream stream) throws Exception
+    {
+        final int sizeLimit = 1024;
+        writer.name("file").value(filename);
+        byte[] buffer = stream.readAllBytes();
+        writer.beginArray();
+
+        if (buffer.length>sizeLimit)
+        {
+            int fullPages = buffer.length/sizeLimit;
+            int remainingBytes = buffer.length % sizeLimit;
+
+            for (int page = 1; page<=fullPages; page++) //write full pages
+            {
+                writePage(writer, guid, sizeLimit, page);    
+            }
+            writePage(writer, guid, remainingBytes,fullPages+1); //write remaining bytes
+        }
+        else//1 page
+        {
+                writePage(writer, guid, buffer.length,1); 
+        }
+        writer.endArray();
+    }
+    public void writePage(JsonWriter writer, long guid, int pageSize, int pageNumber) throws Exception
+    {
+        writer.name("page");
+        writer.beginArray();
+        writer.name("number").value(pageNumber);
+        writer.name("guid").value(guid);
+        writer.name("size").value(pageSize);
+        writer.endArray();
+    }
+
     public void mv(String oldName, String newName) throws Exception
     {
         // TODO:  Change the name in Metadata
@@ -116,7 +156,26 @@ public class DFS
     {
         String listOfFiles = "";
        // TODO: returns all the files in the Metadata
-       // JsonParser jp = readMetaData();
+        JsonReader reader = readMetaData();
+        reader.beginObject();
+        while (reader.hasNext()) 
+        {
+           String name = reader.nextName();
+           if (name.equals("file")) 
+           {
+             listOfFiles = listOfFiles + "\n" + reader.nextString(); 
+           } 
+           else 
+           {
+             reader.skipValue();
+           }
+         }
+        reader.endObject();
+
+        if (listOfFiles=="")
+        {
+            listOfFiles="There are no files.";
+        }
         return listOfFiles;
     }
 
