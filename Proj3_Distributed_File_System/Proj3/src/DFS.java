@@ -156,25 +156,31 @@ public class DFS
     {
         String listOfFiles = "";
        // TODO: returns all the files in the Metadata
-        JsonReader reader = readMetaData();
-        reader.beginObject();
-        while (reader.hasNext()) 
-        {
-           String name = reader.nextName();
-           if (name.equals("file")) 
-           {
-             listOfFiles = listOfFiles + "\n" + reader.nextString(); 
-           } 
-           else 
-           {
-             reader.skipValue();
-           }
-         }
-        reader.endObject();
+        try{
+            JsonReader reader = readMetaData();
+            reader.beginObject();
+            while (reader.hasNext()) 
+            {
+               String name = reader.nextName();
+               if (name.equals("file")) 
+               {
+                 listOfFiles = listOfFiles + "\n" + reader.nextString(); 
+               } 
+               else 
+               {
+                 reader.skipValue();
+               }
+             }
+            reader.endObject();
 
-        if (listOfFiles=="")
+            
+        }
+        catch(Exception e)
         {
-            listOfFiles="There are no files.";
+            if (listOfFiles=="")
+            {
+               return listOfFiles="There are no files.";
+            }
         }
         return listOfFiles;
     }

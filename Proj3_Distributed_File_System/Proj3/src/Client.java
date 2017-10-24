@@ -47,7 +47,7 @@ public class Client {
                     break;
                 case "2":
                     //ls
-                    dfs.ls();
+                    System.out.println( dfs.ls());
                     break;
                 case "3":
                     //touch
