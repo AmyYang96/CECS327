@@ -51,6 +51,9 @@ public class Client {
                     break;
                 case "3":
                     //touch
+                    System.out.println("Plese enter file name");
+                    String f = in.nextLine();
+                    dfs.touch(f);
                     break;
                 case "4":
                     //delete

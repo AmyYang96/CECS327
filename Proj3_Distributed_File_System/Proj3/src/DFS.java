@@ -8,6 +8,9 @@ import java.security.*;
 import com.google.gson.*;  // imported a json package
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+// import a json package
+
+
 /* JSON Format
 
  {
@@ -44,11 +47,7 @@ import com.google.gson.stream.JsonWriter;
  
  */
 
-/**
-* @author Amy Yang
-* @author Tiler Dao
-* @author Christian Eirik Blydt-Hansen
-*/
+
 public class DFS
 {
     int port;
@@ -91,58 +90,28 @@ public class DFS
     
     public JsonReader readMetaData() throws Exception
     {
+        //JsonParser jsonParser _ null;
         long guid = md5("Metadata");
         ChordMessageInterface peer = chord.locateSuccessor(guid);
         InputStream metadataraw = peer.get(guid);
+        // jsonParser = Json.createParser(metadataraw);
         JsonReader reader = new JsonReader(new InputStreamReader(metadataraw, "UTF-8"));
         return reader;
     }
     
-    //to do
     public void writeMetaData(InputStream stream) throws Exception
     {
-       // JsonWriter writer = new JsonWriter(new FileWriter("metadata.json"));
+        //JsonParser jsonParser _ null;
+        //JsonWriter writer = new JsonWriter(new FileWriter("metadata"));
         long guid = md5("Metadata");
         ChordMessageInterface peer = chord.locateSuccessor(guid);
         peer.put(guid, stream);
-      //  writer.beginObject();
-        //writer.name("Metadata");
-       // writer.beginArray();
-        //writeFile();
-    }
-    
-    public void writeFile(JsonWriter writer, String filename, long guid, InputStream stream) throws Exception
-    {
-        final int sizeLimit = 1024;
-        writer.name("file").value(filename);
-        byte[] buffer = stream.readAllBytes();
-        writer.beginArray();
-
-        if (buffer.length>sizeLimit)
-        {
-            int fullPages = buffer.length/sizeLimit;
-            int remainingBytes = buffer.length % sizeLimit;
-
-            for (int page = 1; page<=fullPages; page++) //write full pages
-            {
-                writePage(writer, guid, sizeLimit, page);    
-            }
-            writePage(writer, guid, remainingBytes,fullPages+1); //write remaining bytes
-        }
-        else//1 page
-        {
-                writePage(writer, guid, buffer.length,1); 
-        }
-        writer.endArray();
-    }
-    public void writePage(JsonWriter writer, long guid, int pageSize, int pageNumber) throws Exception
-    {
-        writer.name("page");
-        writer.beginArray();
-        writer.name("number").value(pageNumber);
-        writer.name("guid").value(guid);
-        writer.name("size").value(pageSize);
-        writer.endArray();
+        //writer.beginObject();
+        //writer.name("metadata");
+        //writer.beginArray();
+        //writer.endArray();
+        //writer.endObject();
+        //writer.close();
     }
 
     public void mv(String oldName, String newName) throws Exception
@@ -155,43 +124,67 @@ public class DFS
     public String ls() throws Exception
     {
         String listOfFiles = "";
-       // TODO: returns all the files in the Metadata
-        try{
-            JsonReader reader = readMetaData();
-            reader.beginObject();
-            while (reader.hasNext()) 
-            {
-               String name = reader.nextName();
-               if (name.equals("file")) 
-               {
-                 listOfFiles = listOfFiles + "\n" + reader.nextString(); 
-               } 
-               else 
-               {
-                 reader.skipValue();
-               }
-             }
-            reader.endObject();
-
-            
-        }
-        catch(Exception e)
-        {
-            if (listOfFiles=="")
-            {
-               return listOfFiles="There are no files.";
+        // TODO: returns all the files in the Metadata
+        // JsonParser jp = readMetaData();
+        JsonReader jr = readMetaData();
+        System.out.println("Start ls");
+        jr.beginObject();
+        jr.skipValue();
+        jr.beginArray();
+        while (jr.hasNext()) {
+            jr.beginObject();
+            while (jr.hasNext()) {
+                String name = jr.nextName();
+                if (name.equals("name")) {
+                    String thing = jr.nextString();
+                    System.out.println(thing);
+                } else {
+                    jr.skipValue();
+                }
             }
+            jr.endObject();
         }
+        jr.endArray();
+        jr.endObject();
         return listOfFiles;
     }
 
     
     public void touch(String fileName) throws Exception
     {
-         // TODO: Create the file fileName by adding a new entry to the Metadata
-        // Write Metadata
-
         
+        // TODO: Create the file fileName by adding a new entry to the Metadata
+        
+        // all this commented out code is how to make a json object
+
+        //JsonObject innerObject = new JsonObject();
+        //innerObject.addProperty("name", "john");
+        //JsonObject fileObj = new JsonObject();
+        //fileObj.addProperty("name",fileName);
+
+        //JsonArray fileArray = new JsonArray();
+        //fileArray.add(fileObj);
+
+        //JsonObject jsonObject = new JsonObject();
+        //jsonObject.add("metadata",fileArray);
+
+        // this reads existing metadata into a json object
+
+        JsonParser jp = new JsonParser();
+        JsonReader jr = readMetaData();
+        JsonObject meta = (JsonObject)jp.parse(jr);
+        JsonArray fileList = meta.getAsJsonArray("metadata");
+        JsonObject fileObj = new JsonObject();
+        // will need to add more properties
+        fileObj.addProperty("name",fileName);
+        fileList.add(fileObj);
+        meta.add("metadata",fileList);
+        
+        String str = meta.toString();
+        InputStream is = new ByteArrayInputStream(str.getBytes());
+        writeMetaData(is);
+
+        // Write Metadata
         
     }
     public void delete(String fileName) throws Exception
@@ -233,4 +226,5 @@ public class DFS
 
         
     }
+    
 }
