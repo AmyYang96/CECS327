@@ -22,6 +22,10 @@ public class Client {
         Scanner in = new Scanner(System.in);
 
         boolean isRunning = true;
+        byte[] result;
+        String name;
+        String oldName;
+        int pageNum;
 
         while(isRunning==true) {
             System.out.println("\nEnter a command");
@@ -52,23 +56,46 @@ public class Client {
                 case "3":
                     //touch
                     System.out.println("Plese enter file name");
-                    String f = in.nextLine();
-                    dfs.touch(f);
+                    name = in.nextLine();
+                    dfs.touch(name);
                     break;
                 case "4":
                     //delete
+                    System.out.println("Plese enter file name");
+                    name = in.nextLine();
+                    dfs.delete(name);
                     break;
                 case "5":
                     //read
+                    System.out.println("Plese enter file name");
+                    name = in.nextLine();
+                    System.out.println("Plese enter page number");
+                    pageNum = in.nextInt();
+                    result = dfs.read(name,pageNum);
+                    System.out.println(new String(result));
                     break;
                 case "6":
                     //tail
+                    System.out.println("Plese enter file name");
+                    name = in.nextLine();
+                    result = dfs.tail(name);
+                    System.out.println(new String(result));
                     break;
                 case "7":
                     //head
+                    System.out.println("Plese enter file name");
+                    name = in.nextLine();
+                    result = dfs.head(name);
+                    System.out.println(new String(result));
                     break;
                 case "8":
                     //append
+                    System.out.println("Plese enter file name");
+                    name = in.nextLine();
+                    System.out.println("Plese enter file content");
+                    String content = in.nextLine();
+                    byte[] b = content.getBytes();
+                    dfs.append(name,b);
                     break;
                 case "9":
                     //move

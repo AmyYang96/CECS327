@@ -136,8 +136,7 @@ public class DFS
             while (jr.hasNext()) {
                 String name = jr.nextName();
                 if (name.equals("name")) {
-                    String thing = jr.nextString();
-                    System.out.println(thing);
+                    listOfFiles += jr.nextString()+"\n";
                 } else {
                     jr.skipValue();
                 }
@@ -174,11 +173,15 @@ public class DFS
         JsonReader jr = readMetaData();
         JsonObject meta = (JsonObject)jp.parse(jr);
         JsonArray fileList = meta.getAsJsonArray("metadata");
+        
         JsonObject fileObj = new JsonObject();
-        // will need to add more properties
         fileObj.addProperty("name",fileName);
+        fileObj.addProperty("numberOfPages", 0);
+        fileObj.addProperty("pageSize", 1024);
+        fileObj.addProperty("size", 0);
+        fileObj.add("pages", new JsonArray());
+
         fileList.add(fileObj);
-        meta.add("metadata",fileList);
         
         String str = meta.toString();
         InputStream is = new ByteArrayInputStream(str.getBytes());
@@ -196,32 +199,136 @@ public class DFS
         // delete Metadata.filename
         // Write Metadata
 
-        
+        JsonParser jp = new JsonParser();
+        JsonReader jr = readMetaData();
+        JsonObject meta = (JsonObject)jp.parse(jr);
+        JsonArray fileList = meta.getAsJsonArray("metadata");
+        int indexToRemove = -1;
+
+        for (int i=0;i<fileList.size();i++) {
+            JsonObject jo = fileList.get(i).getAsJsonObject();
+            String name = jo.get("name").getAsString();
+            if (name.equals(fileName)) {
+                JsonArray pageArray = jo.get("pages").getAsJsonArray();
+                
+                for (int j=0;j<pageArray.size();j++) {
+                    JsonObject page = pageArray.get(j).getAsJsonObject();
+                    long pageGuid = page.get("guid").getAsLong();
+
+                    ChordMessageInterface peer = chord.locateSuccessor(pageGuid);
+                    peer.delete(pageGuid);
+                }
+                indexToRemove = i;
+            }
+        }
+        if (indexToRemove > -1) {
+            fileList.remove(indexToRemove);
+            String str = meta.toString();
+            InputStream is = new ByteArrayInputStream(str.getBytes());
+            writeMetaData(is);
+        }
     }
     
-    public Byte[] read(String fileName, int pageNumber) throws Exception
+    public byte[] read(String fileName, int pageNumber) throws Exception
     {
         // TODO: read pageNumber from fileName
-        return null;
+        JsonParser jp = new JsonParser();
+        JsonReader jr = readMetaData();
+        JsonObject meta = (JsonObject)jp.parse(jr);
+        JsonArray fileList = meta.getAsJsonArray("metadata");
+
+        byte[] array = null;
+
+        for (int i=0;i<fileList.size();i++) {
+            JsonObject jo = fileList.get(i).getAsJsonObject();
+            String name = jo.get("name").getAsString();
+            if (name.equals(fileName)) {
+                JsonArray pageArray = jo.get("pages").getAsJsonArray();
+                int index = (pageNumber != -1) ? pageNumber-1 : pageArray.size()-1;
+                JsonObject page = pageArray.get(pageNumber-1).getAsJsonObject();
+                int size = page.get("size").getAsInt();
+                long pageGuid = page.get("guid").getAsLong();
+
+                ChordMessageInterface peer = chord.locateSuccessor(pageGuid);
+                InputStream is = peer.get(pageGuid);
+                array = new byte[size];
+
+                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                int nRead = is.read(array, 0, array.length);
+                buffer.write(array, 0, nRead);
+                buffer.flush();
+                is.close();
+            }
+        }
+
+        return array;
     }
     
     
-    public Byte[] tail(String fileName) throws Exception
+    public byte[] tail(String fileName) throws Exception
     {
         // TODO: return the last page of the fileName
-        return null;
+        return read(fileName,-1);
     }
-    public Byte[] head(String fileName) throws Exception
+    public byte[] head(String fileName) throws Exception
     {
         // TODO: return the first page of the fileName
-        return null;
+        return read(fileName,1);
     }
-    public void append(String filename, Byte[] data) throws Exception
+    public void append(String filename, byte[] data) throws Exception
     {
         // TODO: append data to fileName. If it is needed, add a new page.
         // Let guid be the last page in Metadata.filename
-        //ChordMessageInterface peer = chord.locateSuccessor(guid);
-        //peer.put(guid, data);
+
+        JsonParser jp = new JsonParser();
+        JsonReader jr = readMetaData();
+        JsonObject meta = (JsonObject)jp.parse(jr);
+        JsonArray fileList = meta.getAsJsonArray("metadata");
+
+        // loop through list of files
+        for (int i=0;i<fileList.size();i++) {
+            JsonObject jo = fileList.get(i).getAsJsonObject();
+            // get name of file
+            String name = jo.get("name").getAsString();
+            // if name is the filename we're looking for
+            if (name.equals(filename)) {
+                // get size of page
+                int pageSize = jo.get("pageSize").getAsInt();
+                // get page list
+                JsonArray pageArray = jo.get("pages").getAsJsonArray();
+                int pageNum = pageArray.size();
+                // loop through data
+                for (int j=0;j<data.length;j++) {
+                    if (j % pageSize == 0) {
+                        JsonObject page = new JsonObject();
+                        long guid = md5(name+pageNum);
+                        page.addProperty("number",pageNum);
+                        page.addProperty("guid",guid);
+                        
+                        int beginIndex = j;
+                        int endIndex = j+pageSize;
+                        if (endIndex > data.length) {
+                            endIndex = data.length;
+                        }
+                        byte[] subdata = Arrays.copyOfRange(data, beginIndex, endIndex);
+                        page.addProperty("size",subdata.length);
+
+                        ChordMessageInterface peer = chord.locateSuccessor(guid);
+                        
+                        InputStream is = new ByteArrayInputStream(subdata);
+                        peer.put(guid, is);
+                        pageArray.add(page);
+                        pageNum += 1;
+                    }
+                }
+            }
+        }
+        //fileList.get()
+
+        String str = meta.toString();
+        InputStream is = new ByteArrayInputStream(str.getBytes());
+        writeMetaData(is);
+        
         // Write Metadata
 
         
