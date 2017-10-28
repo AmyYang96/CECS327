@@ -8,51 +8,27 @@ import java.security.*;
 import com.google.gson.*;  // imported a json package
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-// import a json package
 
-
-/* JSON Format
-
- {
-    "metadata" :
-    {
-        file :
-        {
-            name  : "File1"
-            numberOfPages : "3"
-            pageSize : "1024"
-            size : "2291"
-            page :
-            {
-                number : "1"
-                guid   : "22412"
-                size   : "1024"
-            }
-            page :
-            {
-                number : "2"
-                guid   : "46312"
-                size   : "1024"
-            }
-            page :
-            {
-                number : "3"
-                guid   : "93719"
-                size   : "243"
-            }
-        }
-    }
-}
- 
- 
- */
-
-
+/**
+* @author Amy Yang
+* @author Tiler Dao
+* @author Christian Eirik Blydt-Hansen
+* This class represents a distributed file system that uses the chord interface
+*/
 public class DFS
 {
+    /**Port that this poor is using*/
     int port;
+
+    /**Chord object*/
     Chord  chord;
     
+
+    /**
+    * Hash function to generate unique GUID
+    * @param objectName – name of the peer
+    * @preturn guid of the peer
+    */
     private long md5(String objectName)
     {
         try
@@ -72,7 +48,10 @@ public class DFS
     }
     
     
-    
+    /**
+    * Constructor for the distributed file system
+    * @param port – port number that the peer is using
+    */
     public DFS(int port) throws Exception
     {
         
@@ -82,12 +61,23 @@ public class DFS
         Files.createDirectories(Paths.get(guid+"/repository"));
     }
     
+
+    /**
+    * Joins the peer to the ring
+    * @param Ip – ip address
+    * @param port – port number
+    */
     public  void join(String Ip, int port) throws Exception
     {
         chord.joinRing(Ip, port);
         chord.Print();
     }
     
+
+    /**
+    * Reads in the metadata 
+    * @return JsonReader for the metadata
+    */
     public JsonReader readMetaData() throws Exception
     {
         //JsonParser jsonParser _ null;
@@ -98,7 +88,11 @@ public class DFS
         JsonReader reader = new JsonReader(new InputStreamReader(metadataraw, "UTF-8"));
         return reader;
     }
-    
+
+    /**
+    * Writes the metadata and puts into the Chord
+    * @param stream – InputStream of metadata
+    */
     public void writeMetaData(InputStream stream) throws Exception
     {
         //JsonParser jsonParser _ null;
@@ -114,13 +108,49 @@ public class DFS
         //writer.close();
     }
 
+
+    /**
+    * Changes a file name in metadata
+    * @param oldName – file name to be changed
+    * @paran newName – new file name
+    */
     public void mv(String oldName, String newName) throws Exception
     {
         // TODO:  Change the name in Metadata
         // Write Metadata
+        JsonParser jp = new JsonParser();
+        JsonReader jr = readMetaData();
+        JsonObject meta = (JsonObject)jp.parse(jr);
+        JsonArray fileList = meta.getAsJsonArray("metadata");
+        int indexToRemove = -1;
+
+        for (int i=0;i<fileList.size();i++) {
+            JsonObject jo = fileList.get(i).getAsJsonObject();
+            String name = jo.get("name").getAsString();
+            if (name.equals(oldName)) {
+                jo.addProperty("name", newName);
+                JsonArray pageArray = jo.get("pages").getAsJsonArray();
+                
+                for (int j=0;j<pageArray.size();j++) {
+                    JsonObject page = pageArray.get(j).getAsJsonObject();
+                    long guid = md5(newName+pageArray.size());
+                    
+                    page.addProperty("guid",guid);
+ 
+                    
+                }
+            }
+        }
+        String str = meta.toString();
+        InputStream is = new ByteArrayInputStream(str.getBytes());
+        writeMetaData(is);
     }
 
     
+    /**
+    * Lists the file names in metadata
+    * @return String of file names
+    */
     public String ls() throws Exception
     {
         String listOfFiles = "";
@@ -148,7 +178,10 @@ public class DFS
         return listOfFiles;
     }
 
-    
+    /**
+    * Creates the file fileName by adding a new entry to the Metadata
+    * @param fileName –  new file to be added
+    */
     public void touch(String fileName) throws Exception
     {
         
@@ -187,9 +220,14 @@ public class DFS
         InputStream is = new ByteArrayInputStream(str.getBytes());
         writeMetaData(is);
 
-        // Write Metadata
-        
+        // Write Metadata        
     }
+
+    
+    /**
+    * Removes a file in the metadata as well as in Chord
+    * @param fileName – name of file to be removed
+    */
     public void delete(String fileName) throws Exception
     {
         // TODO: remove all the pages in the entry fileName in the Metadata and then the entry
@@ -229,6 +267,13 @@ public class DFS
         }
     }
     
+
+    /**
+    * Reads the content from a page in a file 
+    * @param fileName – name of file to be read from
+    * @param pageNumber – page number in the file
+    * @return content in byte array 
+    */
     public byte[] read(String fileName, int pageNumber) throws Exception
     {
         // TODO: read pageNumber from fileName
