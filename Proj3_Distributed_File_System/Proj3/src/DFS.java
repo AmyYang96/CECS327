@@ -2,6 +2,7 @@ import java.rmi.*;
 import java.net.*;
 import java.util.*;
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.math.BigInteger;
 import java.security.*;
@@ -70,6 +71,18 @@ public class DFS
     public  void join(String Ip, int port) throws Exception
     {
         chord.joinRing(Ip, port);
+
+        //JsonObject innerObject = new JsonObject();
+        //innerObject.addProperty("name", "john");
+        //JsonObject fileObj = new JsonObject();
+        //fileObj.addProperty("name",fileName);
+
+        //JsonArray fileArray = new JsonArray();
+        //fileArray.add(fileObj);
+
+        //JsonObject jsonObject = new JsonObject();
+        //jsonObject.add("metadata",fileArray);
+
         chord.Print();
     }
     
@@ -133,11 +146,14 @@ public class DFS
                 
                 for (int j=0;j<pageArray.size();j++) {
                     JsonObject page = pageArray.get(j).getAsJsonObject();
-                    long guid = md5(newName+pageArray.size());
+                    long guid = md5(newName+(j+1));
                     
                     page.addProperty("guid",guid);
  
-                    
+                    byte[] content = read(oldName,j+1);
+                    ChordMessageInterface peer = chord.locateSuccessor(guid);
+                    InputStream is = new ByteArrayInputStream(content);
+                    peer.put(guid, is);                   
                 }
             }
         }
@@ -217,7 +233,7 @@ public class DFS
         fileList.add(fileObj);
         
         String str = meta.toString();
-        InputStream is = new ByteArrayInputStream(str.getBytes());
+        InputStream is = new ByteArrayInputStream(str.getBytes(Charset.forName("UTF-8")));
         writeMetaData(is);
 
         // Write Metadata        
@@ -290,7 +306,7 @@ public class DFS
             if (name.equals(fileName)) {
                 JsonArray pageArray = jo.get("pages").getAsJsonArray();
                 int index = (pageNumber != -1) ? pageNumber-1 : pageArray.size()-1;
-                JsonObject page = pageArray.get(pageNumber-1).getAsJsonObject();
+                JsonObject page = pageArray.get(index).getAsJsonObject();
                 int size = page.get("size").getAsInt();
                 long pageGuid = page.get("guid").getAsLong();
 
@@ -335,37 +351,89 @@ public class DFS
             JsonObject jo = fileList.get(i).getAsJsonObject();
             // get name of file
             String name = jo.get("name").getAsString();
+            int num = jo.get("numberOfPages").getAsInt();
             // if name is the filename we're looking for
             if (name.equals(filename)) {
                 // get size of page
                 int pageSize = jo.get("pageSize").getAsInt();
                 // get page list
                 JsonArray pageArray = jo.get("pages").getAsJsonArray();
-                int pageNum = pageArray.size();
-                // loop through data
-                for (int j=0;j<data.length;j++) {
+                int startDataAt = 0;
+                int pageNum = 1;
+                // get last page
+                if (num > 0) {
+                    int lastPageIndex = pageArray.size()-1;
+                    JsonObject pagejo = pageArray.get(lastPageIndex).getAsJsonObject();
+                    int size = pagejo.get("size").getAsInt();
+                    long guid = pagejo.get("guid").getAsLong();
+                    // get page num of newest empty page
+                    pageNum = pageArray.size();
+                    // if the last page still has room for data
+                    if (size < pageSize) {
+                        // add data to fill up page
+                        //System.out.println("ASAA");
+                        //System.out.println(pageSize-size);
+                        //System.out.println(data.length);
+                        if (pageSize-size < data.length) {
+                            //System.out.println("A");
+                            startDataAt = pageSize-size;
+                        } else {
+                            //System.out.println("B");
+                            startDataAt = data.length;
+                        }
+                        //startDataAt = pageSize-size;
+                        // get subdata that will be put into page
+                        byte[] subdata = Arrays.copyOfRange(data,0,startDataAt);
+                        // read what's already in there
+                        byte[] existingData = read(filename, lastPageIndex+1);
+                        // combine arrays
+                        byte[] combinedArray = new byte[subdata.length+existingData.length];
+                        for (int j=0;j<existingData.length;j++) {
+                            combinedArray[j] = existingData[j];
+                        }
+                        for (int j=0;j<subdata.length;j++) {
+                            combinedArray[j+existingData.length] = subdata[j];
+                        }
+                        // put into data
+                        ChordMessageInterface peer = chord.locateSuccessor(guid);
+                        InputStream is = new ByteArrayInputStream(combinedArray);
+                        peer.put(guid, is);
+                        // change size in metadata
+                        pagejo.addProperty("size",combinedArray.length);
+                        pageNum += 1;
+                    }
+                }
+
+                // loop through rest of the data
+                //System.out.println("AAAAA");
+                //System.out.println(startDataAt);
+                //System.out.println(data.length);
+                //System.out.println(data.length);
+                byte[] restOfData = Arrays.copyOfRange(data, startDataAt, data.length);
+                for (int j=startDataAt;j<restOfData.length;j++) {
                     if (j % pageSize == 0) {
                         JsonObject page = new JsonObject();
-                        long guid = md5(name+pageNum);
+                        long newGuid = md5(name+pageNum);
                         page.addProperty("number",pageNum);
-                        page.addProperty("guid",guid);
+                        page.addProperty("guid",newGuid);
                         
                         int beginIndex = j;
                         int endIndex = j+pageSize;
-                        if (endIndex > data.length) {
-                            endIndex = data.length;
+                        if (endIndex > restOfData.length) {
+                            endIndex = restOfData.length;
                         }
-                        byte[] subdata = Arrays.copyOfRange(data, beginIndex, endIndex);
+                        byte[] subdata = Arrays.copyOfRange(restOfData, beginIndex, endIndex);
                         page.addProperty("size",subdata.length);
 
-                        ChordMessageInterface peer = chord.locateSuccessor(guid);
+                        ChordMessageInterface peer = chord.locateSuccessor(newGuid);
                         
                         InputStream is = new ByteArrayInputStream(subdata);
-                        peer.put(guid, is);
+                        peer.put(newGuid, is);
                         pageArray.add(page);
                         pageNum += 1;
                     }
                 }
+                jo.addProperty("numberOfPages",pageNum-1);
             }
         }
         //fileList.get()

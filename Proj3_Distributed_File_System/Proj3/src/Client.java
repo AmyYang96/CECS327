@@ -54,77 +54,100 @@ public class Client {
 
             String choice = in.nextLine();
 
-            switch(choice) {
-                case "1":
-                    System.out.println("Please enter port");
-                    String port = in.nextLine();
-                    dfs.join("localhost",Integer.parseInt(port));
-                    //join
-                    break;
-                case "2":
-                    //ls
-                    System.out.println( dfs.ls());
-                    break;
-                case "3":
-                    //touch
-                    System.out.println("Please enter file name");
-                    name = in.nextLine();
-                    dfs.touch(name);
-                    break;
-                case "4":
-                    //delete
-                    System.out.println("Please enter file name");
-                    name = in.nextLine();
-                    dfs.delete(name);
-                    break;
-                case "5":
-                    //read
-                    System.out.println("Please enter file name");
-                    name = in.nextLine();
-                    System.out.println("Please enter page number");
-                    pageNum = in.nextInt();
-                    result = dfs.read(name,pageNum);
-                    System.out.println(new String(result));
-                    break;
-                case "6":
-                    //tail
-                    System.out.println("Please enter file name");
-                    name = in.nextLine();
-                    result = dfs.tail(name);
-                    System.out.println(new String(result));
-                    break;
-                case "7":
-                    //head
-                    System.out.println("Please enter file name");
-                    name = in.nextLine();
-                    result = dfs.head(name);
-                    System.out.println(new String(result));
-                    break;
-                case "8":
-                    //append
-                    System.out.println("Please enter file name");
-                    name = in.nextLine();
-                    System.out.println("Please enter file content");
-                    String content = in.nextLine();
-                    byte[] b = content.getBytes();
-                    dfs.append(name,b);
-                    break;
-                case "9":
-                    //move
-                    System.out.println("Please enter file name you want to change");
-                    String old_Name = in.nextLine();
-                    System.out.println("Please enter a new file name");
-                    String newName = in.nextLine();
-                    dfs.mv(old_Name,newName);
-                    break;
-                case "0":
-                    //quit
-                    
-                    //isRunning = false;
-                    System.exit(0);
-                    break;
-                default:
-                    System.out.println("Invalid input");
+            try
+            {
+                switch(choice) {
+                    case "1":
+                        System.out.println("Please enter port");
+                        String port = in.nextLine();
+                        dfs.join("localhost",Integer.parseInt(port));
+                        //join
+                        break;
+                    case "2":
+                        //ls
+                        System.out.println( dfs.ls());
+                        break;
+                    case "3":
+                        //touch
+                        System.out.println("Please enter file name");
+                        name = in.nextLine();
+                        dfs.touch(name);
+                        break;
+                    case "4":
+                        //delete
+                        System.out.println("Please enter file name");
+                        name = in.nextLine();
+                        dfs.delete(name);
+                        break;
+                    case "5":
+                        //read
+                        System.out.println("Please enter file name");
+                        name = in.nextLine();
+                        System.out.println("Please enter page number");
+                        String pageString = in.nextLine();
+                        pageNum = 1;
+                        try
+                        {
+                            pageNum = Integer.parseInt(pageString);
+                        } catch (Exception e)
+                        {
+                            System.out.println("Invalid page number");
+                            break;
+                        }
+                        result = dfs.read(name,pageNum);
+                        System.out.println((new String(result)).replace("/n","\n"));
+                        break;
+                    case "6":
+                        //tail
+                        System.out.println("Please enter file name");
+                        name = in.nextLine();
+                        result = dfs.tail(name);
+                        System.out.println(new String(result).replace("/n","\n"));
+                        break;
+                    case "7":
+                        //head
+                        System.out.println("Please enter file name");
+                        name = in.nextLine();
+                        result = dfs.head(name);
+                        System.out.println(new String(result).replace("/n","\n"));
+                        break;
+                    case "8":
+                        //append
+                        System.out.println("Please enter file name");
+                        name = in.nextLine();
+                        System.out.println("Please enter file content");
+                        String content = in.nextLine();
+                        Scanner sc = new Scanner(new File(content));
+                        StringBuilder sb = new StringBuilder();
+                        while(sc.hasNextLine())
+                        {
+                            sb.append(sc.nextLine() + "/n");
+                        }
+                        content = sb.toString();
+                        byte[] b = content.getBytes();
+                        dfs.append(name,b);
+                        break;
+                    case "9":
+                        //move
+                        System.out.println("Please enter file name you want to change");
+                        String old_Name = in.nextLine();
+                        System.out.println("Please enter a new file name");
+                        String newName = in.nextLine();
+                        dfs.mv(old_Name,newName);
+                        break;
+                    case "0":
+                        //quit
+                        
+                        //isRunning = false;
+                        System.exit(0);
+                        break;
+                    default:
+                        System.out.println("Invalid input");
+                }
+            } catch (Exception e)
+            {
+                System.out.println(e);
+                System.out.println("Invalid input");
             }
         }
       //  System.out.println("out");
