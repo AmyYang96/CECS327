@@ -152,13 +152,13 @@ public class DFS
  
                     byte[] content = read(oldName,j+1);
                     ChordMessageInterface peer = chord.locateSuccessor(guid);
-                    InputStream is = new ByteArrayInputStream(content);
+                    InputStream is = new FileStream(content);
                     peer.put(guid, is);                   
                 }
             }
         }
         String str = meta.toString();
-        InputStream is = new ByteArrayInputStream(str.getBytes());
+        InputStream is = new FileStream(str.getBytes());
         writeMetaData(is);
     }
 
@@ -233,7 +233,7 @@ public class DFS
         fileList.add(fileObj);
         
         String str = meta.toString();
-        InputStream is = new ByteArrayInputStream(str.getBytes(Charset.forName("UTF-8")));
+        InputStream is = new FileStream(str.getBytes(Charset.forName("UTF-8")));
         writeMetaData(is);
 
         // Write Metadata        
@@ -278,7 +278,7 @@ public class DFS
         if (indexToRemove > -1) {
             fileList.remove(indexToRemove);
             String str = meta.toString();
-            InputStream is = new ByteArrayInputStream(str.getBytes());
+            InputStream is = new FileStream(str.getBytes());
             writeMetaData(is);
         }
     }
@@ -396,7 +396,7 @@ public class DFS
                         }
                         // put into data
                         ChordMessageInterface peer = chord.locateSuccessor(guid);
-                        InputStream is = new ByteArrayInputStream(combinedArray);
+                        InputStream is = new FileStream(combinedArray);
                         peer.put(guid, is);
                         // change size in metadata
                         pagejo.addProperty("size",combinedArray.length);
@@ -427,7 +427,7 @@ public class DFS
 
                         ChordMessageInterface peer = chord.locateSuccessor(newGuid);
                         
-                        InputStream is = new ByteArrayInputStream(subdata);
+                        InputStream is = new FileStream(subdata);
                         peer.put(newGuid, is);
                         pageArray.add(page);
                         pageNum += 1;
@@ -439,7 +439,7 @@ public class DFS
         //fileList.get()
 
         String str = meta.toString();
-        InputStream is = new ByteArrayInputStream(str.getBytes());
+        InputStream is = new FileStream(str.getBytes());
         writeMetaData(is);
         
         // Write Metadata

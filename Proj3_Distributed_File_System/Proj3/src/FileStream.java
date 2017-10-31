@@ -37,6 +37,22 @@ public class FileStream extends InputStream implements  Serializable {
       fileInputStream.close();	
       currentPosition = 0;	  
     }
+
+    public  FileStream(byte[] data) throws FileNotFoundException, IOException    
+    {
+      //File file = new File(pathName);
+      size = data.length;
+      byteBuffer = data;
+      
+      /*FileInputStream fileInputStream = new FileInputStream(pathName);
+      int i = 0;
+      while (fileInputStream.available()> 0)
+      {
+        byteBuffer[i++] = (byte)fileInputStream.read();
+      }
+      fileInputStream.close();  */
+      currentPosition = 0;    
+    }
     
     /** 
     * Constructor that sets current position to = 0
