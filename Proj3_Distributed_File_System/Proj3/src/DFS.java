@@ -446,5 +446,28 @@ public class DFS
 
         
     }
+
+    public void runMapReduce(File file)
+    {
+        Counter mapCounter = new Counter();
+        Counter reduceCounter = new Counter();
+        Counter completedCounter = new Counter();
+        
+        Mapper mapperReducer = new Mapper();
+        //MapInterface mapper = new MapInterface();
+        //ReduceInterface reducer = new ReduceInterface();
+        
+        // map Phases
+        //for each page in metafile.file
+        //    mapCounter.add(page);
+            //Let peer be the process responsible for storing page
+        //    peer.mapContext(page, mapper, mapCounter)
+        //wait until mapCounter.hasCompleted() = true
+        //reduce phase
+        //reduceContext(guid, mapperReducer, reduceCounter);
+        //wait until reduceCounter.hasCompleted() = true;
+        //completed(guid, completedCounter);
+        //wait until completedCounter.hasCompleted() 
+    }
     
 }

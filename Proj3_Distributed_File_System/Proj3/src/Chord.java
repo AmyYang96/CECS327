@@ -408,4 +408,43 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
 	       System.out.println("Cannot retrive id");
         }
     }
+
+    void emitMap(int key, String value, Counter counter)
+    {
+        if(isKeyInSemiCloseInterval(key, predecessor.getId(), guid)) {
+            // TODO store key and value in TreeMap<Long,List<String>>
+            counter.decrement();
+        } else if(isKeyInSemiCloseInterval(key, guid, successor.getId())) {
+            successor.emitMap(key, value, counter);
+        } else {
+            closestPrecedingNode(key).emitMap(key,value,counter);
+        }
+    }
+
+    void emitReduce(int key, String value, Counter counter) {
+        if(isKeyInSemiCloseInterval(key, predecessor.getId(), guid)) {
+            // TODO store key and value in TreeMap<Long,String>
+            counter.decrement();
+        } else if(isKeyInSemiCloseInterval(key, guid, successor.getId())) {
+            successor.emitReduce(key, value, counter);
+        } else {
+            closestPrecedingNode(key).emitReduce(key,value,counter);
+        }
+    }
+
+    void mapContext(int page, MapInterface mapper, Counter counter) {
+        // open page
+        // for each line, mapper.map(key, value, counter)
+        
+    }
+
+    void reduceContext(int source, ReduceInterface reducer, Counter counter) {
+        // open page
+        // for each line, mapper.map(key, value, counter)
+        
+    }
+
+    void completed(int source, Counter counter) {
+
+    }
 }

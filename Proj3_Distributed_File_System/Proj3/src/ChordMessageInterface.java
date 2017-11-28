@@ -73,4 +73,16 @@ public interface ChordMessageInterface extends Remote
     * @param guidObject –file name
     */
     public void delete(long guidObject) throws IOException, RemoteException;
+
+
+    void emitMap(int key, String value, Counter counter);
+
+    void emitReduce(int key, String value, Counter counter);
+
+    void mapContext(int page, MapInterface mapper, Counter counter);
+
+    void reduceContext(int source, ReduceInterface reducer, Counter counter);
+
+    void completed(int source, Counter counter);
+    
 }
