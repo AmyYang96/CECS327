@@ -511,7 +511,7 @@ public class DFS
         System.out.println("huh");
         //long guid = md5("Metadata");
         //ChordMessageInterface peer = chord.locateSuccessor(guid);
-        ChordMessageInterface peer = chord;
+        //ChordMessageInterface peer = chord;
         System.out.println("peer?");
         System.out.println(pages);
         for(int i = 0; i < pages.size(); i++)
@@ -523,11 +523,11 @@ public class DFS
         	
             System.out.println("a");
             //System.out.println(mapperReducer);
-            peer.mapContext(pageID, mapperReducer, mapCounter);
+            chord.mapContext(pageID, mapperReducer, mapCounter);
             System.out.println("mapped??");
         }
         System.out.println("now we wait");
-		TreeMap<Long, List<String>> mapMap = peer.getMapMap();
+		TreeMap<Long, List<String>> mapMap = chord.getMapMap();
 		if(mapMap == null) System.out.println("HELP");
 		Set<Long> keySet = mapMap.keySet();
 		System.out.println("PRINTING OUT THE STUFF");
@@ -543,10 +543,10 @@ public class DFS
 		}
         while (!mapCounter.hasCompleted());
         System.out.println("???????????????");
-        peer.reduceContext(chord.getId(), mapperReducer, reduceCounter);
+        chord.reduceContext(chord.getId(), mapperReducer, reduceCounter);
         while (!reduceCounter.hasCompleted());
         
-        peer.completed(chord.getId(), completedCounter);
+        chord.completed(chord.getId(), completedCounter);
         while (!completedCounter.hasCompleted());
         
         System.out.println("we did it");
