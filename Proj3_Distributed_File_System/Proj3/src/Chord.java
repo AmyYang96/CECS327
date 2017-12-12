@@ -507,7 +507,7 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
         System.out.println("start map");
     	byte[]array = new byte[1024];
     	System.out.println("today's key is " + key);
-    	InputStream is = get(key);
+    	InputStream is = locateSuccessor(key).get(key);
         if (is == null) {
             return;
         }
