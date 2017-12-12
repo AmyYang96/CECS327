@@ -527,6 +527,8 @@ public class DFS
             System.out.println("mapped??");
         }
         System.out.println("now we wait");
+        while(chord.getMapMap() == null);
+        System.out.println("this worked?");
 		TreeMap<Long, List<String>> mapMap = chord.getMapMap();
 		if(mapMap == null) System.out.println("HELP");
 		Set<Long> keySet = mapMap.keySet();

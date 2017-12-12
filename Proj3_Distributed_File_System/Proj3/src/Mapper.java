@@ -63,6 +63,7 @@ public class Mapper extends java.rmi.server.UnicastRemoteObject implements MapIn
 		String[]values = value.split(":")[1].split(",");
 		for(String val : values)
 		{
+			System.out.println(val);
 			chord.emitMap(md5(val), val, counter);
 		}
 		//System.out.println(chord);
