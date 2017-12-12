@@ -544,13 +544,15 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
         	counter.add(guid);
         	successor.reduceContext(key, reducer, counter);
         	// TODO new thread that iterates over treemap and executes reducer.reduce(key, value, counter)
-        	//when it completes, call counter.increment(guid,n) where n is number of rows and guid is peer guid
         	Set<Long> keySet = reduceMap.keySet();
+            int numRows = 0;
         	for(Long k : keySet)
         	{
+                numRows += 1;
         		//reducer.reduce(k, reduceMap.get(k), counter);
         		//needs to be values[]
         	}
+            counter.increment(guid,numRows);
         }
     }
 
