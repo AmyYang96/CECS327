@@ -514,44 +514,95 @@ public class DFS
         //ChordMessageInterface peer = chord;
         System.out.println("peer?");
         System.out.println(pages);
-        for(int i = 0; i < pages.size(); i++)
-        {
-            System.out.println("obj???");
-        	JsonObject p = pages.get(i).getAsJsonObject();
-        	long pageID = p.get("guid").getAsLong();
-        	mapCounter.add(pageID);
-        	
-            System.out.println("a");
-            //System.out.println(mapperReducer);
-            chord.mapContext(pageID, mapperReducer, mapCounter);
-            System.out.println("mapped??");
-        }
-        System.out.println("now we wait");
-        while(chord.getMapMap() == null);
-        System.out.println("this worked?");
-		TreeMap<Long, List<String>> mapMap = chord.getMapMap();
-		if(mapMap == null) System.out.println("HELP");
-		Set<Long> keySet = mapMap.keySet();
-		System.out.println("PRINTING OUT THE STUFF");
-		for(Long key : keySet)
-		{
-			System.out.print(key + " : ");
-			List<String> list = mapMap.get(key);
-			for(String str : list)
-			{
-				System.out.print(str + ",");
+		final JsonArray pagesFinal = pages;
+		Thread mapThread = new Thread() {
+			public void run() {
+				try{
+					for(int i = 0; i < pagesFinal.size(); i++)
+					{
+						System.out.println("obj???");
+						JsonObject p = pagesFinal.get(i).getAsJsonObject();
+						long pageID = p.get("guid").getAsLong();
+						mapCounter.add(pageID);
+						
+						System.out.println("a");
+						//System.out.println(mapperReducer);
+						chord.mapContext(pageID, mapperReducer, mapCounter);
+						System.out.println("mapped??");
+					}
+					TreeMap<Long, List<String>> mapMap = chord.getMapMap();
+					if(mapMap == null) System.out.println("HELP");
+					Set<Long> keySet = mapMap.keySet();
+					System.out.println("PRINTING OUT THE STUFF");
+					for(Long key : keySet)
+					{
+						System.out.print(key + " : ");
+						List<String> list = mapMap.get(key);
+						for(String str : list)
+						{
+							System.out.print(str + ",");
+						}
+						System.out.println();
+					}
+				} catch(Exception e)
+				{
+					e.printStackTrace();
+				} finally {
+					System.out.println("MAP FINISHED");
+				}
 			}
-			System.out.println();
-		}
+		};
+		mapThread.start();
+        System.out.println("now we wait");
+		
         while (!mapCounter.hasCompleted());
         System.out.println("???????????????");
-        chord.reduceContext(chord.getId(), mapperReducer, reduceCounter);
+        
+		Thread reduceThread = new Thread() {
+			public void run() {
+				try{
+					chord.reduceContext(chord.getId(), mapperReducer, reduceCounter);
+					System.out.println("we did it");
+		
+					TreeMap<Long, String> mapMap = chord.reduceMap;
+					if(mapMap == null) System.out.println("HELP");
+					Set<Long> keySet = mapMap.keySet();
+					System.out.println("PRINTING OUT THE STUFF AGAIN");
+					for(Long key : keySet)
+					{
+						System.out.print(key + " : ");
+						String value = mapMap.get(key);
+
+						System.out.println(key + ":" + value);
+						
+					} 
+				} catch(Exception e)
+				{
+					e.printStackTrace();
+				} finally {
+					System.out.println("REDUCE FINISHED");
+				}
+			}
+		};
+		reduceThread.start();
         while (!reduceCounter.hasCompleted());
         
-        chord.completed(chord.getId(), completedCounter);
+		Thread completedThread = new Thread() {
+			public void run() {
+				try{
+					chord.completed(chord.getId(), completedCounter);
+				} catch(Exception e)
+				{
+					e.printStackTrace();
+				} finally {
+					System.out.println("COMPLETED FINISHED");
+				}
+			}
+		};
+		completedThread.start();
         while (!completedCounter.hasCompleted());
         
-        System.out.println("we did it");
+        
     }
     
 }
