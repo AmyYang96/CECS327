@@ -16,5 +16,5 @@ public interface ReduceInterface extends Remote {
 	 * @param key -  guid
 	 * @param value - page content
 	 */
-	public void reduce(long key, String value[], CounterInterface counter) throws RemoteException, IOException;
+	public void reduce(long key, List<String> values, CounterInterface counter) throws RemoteException, IOException;
 }

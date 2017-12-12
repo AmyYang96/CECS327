@@ -16,7 +16,8 @@ import com.google.gson.stream.JsonWriter;
 * @author Christian Eirik Blydt-Hansen
 * This class represents a distributed file system that uses the chord interface
 */
-public class DFS
+
+public class DFS implements Serializable
 {
     /**Port that this poor is using*/
     int port;
@@ -496,11 +497,9 @@ public class DFS
         JsonReader jr = readMetaData();
         JsonObject meta = (JsonObject)jp.parse(jr);
         JsonArray fileList = meta.getAsJsonArray("metadata");
-        //System.out.println("FIle "+fileList.size());
         for(int i = 0; i < fileList.size(); i++){
         	JsonObject jo = fileList.get(i).getAsJsonObject();
         	String name = jo.get("name").getAsString();
-            //System.out.println(name);
         	if(name.equals(fileName))
         	{
         		numPages = jo.get("numberOfPages").getAsInt();
@@ -508,32 +507,20 @@ public class DFS
                 break;
         	}
         }
-        //System.out.println("huh");
-        //long guid = md5("Metadata");
-        //ChordMessageInterface peer = chord.locateSuccessor(guid);
-        //ChordMessageInterface peer = chord;
-        //System.out.println("peer?");
-        //System.out.println(pages);
 		final JsonArray pagesFinal = pages;
 		Thread mapThread = new Thread() {
 			public void run() {
 				try{
 					for(int i = 0; i < pagesFinal.size(); i++)
 					{
-						//System.out.println("obj???");
 						JsonObject p = pagesFinal.get(i).getAsJsonObject();
 						long pageID = p.get("guid").getAsLong();
 						mapCounter.add(pageID);
-						
-						//System.out.println("a");
-						//System.out.println(mapperReducer);
 						chord.mapContext(pageID, mapperReducer, mapCounter);
-						//System.out.println("mapped??");
 					}
 					TreeMap<Long, List<String>> mapMap = chord.getMapMap();
 					if(mapMap == null) System.out.println("HELP");
 					Set<Long> keySet = mapMap.keySet();
-					//System.out.println("PRINTING OUT THE STUFF");
 					for(Long key : keySet)
 					{
 						System.out.print(key + " : ");
@@ -553,21 +540,16 @@ public class DFS
 			}
 		};
 		mapThread.start();
-		//wait(1000);
         Thread.sleep(1000);
-        //System.out.println("now we wait");
 		
         while (!mapCounter.hasCompleted());
-        //System.out.println("???????????????");
         
 		Thread reduceThread = new Thread() {
 			public void run() {
 				try{
-					chord.reduceContext(chord.getId(), mapperReducer, reduceCounter);
-					//System.out.println("we did it");
+					chord.successor.reduceContext(chord.getId(), mapperReducer, reduceCounter);
 		
 					TreeMap<Long, String> mapMap = chord.reduceMap;
-					//if(mapMap == null) System.out.println("HELP");
 					Set<Long> keySet = mapMap.keySet();
 					System.out.println("PRINTING OUT THE STUFF AGAIN");
 					for(Long key : keySet)
@@ -590,11 +572,15 @@ public class DFS
 		Thread.sleep(1000);
 
         while (!reduceCounter.hasCompleted());
-        
+        touch("output");
+
+        DFS dfs = this;
+
 		Thread completedThread = new Thread() {
 			public void run() {
 				try{
-					chord.completed(chord.getId(), completedCounter);
+                    System.out.println("start complete");
+					chord.completed(chord.getId(), completedCounter,dfs);
 				} catch(Exception e)
 				{
 					e.printStackTrace();

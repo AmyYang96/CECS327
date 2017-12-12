@@ -118,7 +118,7 @@ public interface ChordMessageInterface extends Remote
      * @param source - source id
      * @param counter - counter object
      */
-    void completed(long key, Counter counter) throws RemoteException;
+    void completed(long key, Counter counter, DFS dfs) throws RemoteException, IOException;
 	
 	public TreeMap<Long, List<String>> getMapMap()  throws RemoteException;
     
