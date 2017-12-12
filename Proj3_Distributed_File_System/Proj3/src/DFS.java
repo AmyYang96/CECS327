@@ -553,7 +553,8 @@ public class DFS
 			}
 		};
 		mapThread.start();
-		wait(1000);
+		//wait(1000);
+        Thread.sleep(1000);
         //System.out.println("now we wait");
 		
         while (!mapCounter.hasCompleted());
@@ -586,7 +587,7 @@ public class DFS
 			}
 		};
 		reduceThread.start();
-		wait(1000);
+		Thread.sleep(1000);
 
         while (!reduceCounter.hasCompleted());
         
@@ -603,9 +604,9 @@ public class DFS
 			}
 		};
 		completedThread.start();
-		wait(1000);
+		Thread.sleep(1000);
         while (!completedCounter.hasCompleted());
-        
+        System.out.println("damn nice son");
         
     }
     
