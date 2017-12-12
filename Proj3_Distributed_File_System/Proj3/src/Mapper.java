@@ -59,8 +59,14 @@ public class Mapper extends java.rmi.server.UnicastRemoteObject implements MapIn
 	{
 		//For each word in value
 		System.out.println("mapper map");
+		int number = Integer.parseInt(value.split(":")[0]);
+		String[]values = value.split(":")[1].split(",");
+		for(String val : values)
+		{
+			chord.emitMap(md5(val), val, counter);
+		}
 		//System.out.println(chord);
-		chord.emitMap(key, value, counter);
+		
 		System.out.println("comple");
 	}
 

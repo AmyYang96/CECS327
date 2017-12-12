@@ -570,4 +570,9 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
             counter.increment(guid,0);
         }
     }
+	
+	public TreeMap<Long, List<String>> getMapMap() throws RemoteException
+	{
+		return mapMap;
+	}
 }

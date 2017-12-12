@@ -527,6 +527,20 @@ public class DFS
             System.out.println("mapped??");
         }
         System.out.println("now we wait");
+		TreeMap<Long, List<String>> mapMap = peer.getMapMap();
+		if(mapMap == null) System.out.println("HELP");
+		Set<Long> keySet = mapMap.keySet();
+		System.out.println("PRINTING OUT THE STUFF");
+		for(Long key : keySet)
+		{
+			System.out.print(key + " : ");
+			List<String> list = mapMap.get(key);
+			for(String str : list)
+			{
+				System.out.print(str + ",");
+			}
+			System.out.println();
+		}
         while (!mapCounter.hasCompleted());
         System.out.println("???????????????");
         peer.reduceContext(chord.getId(), mapperReducer, reduceCounter);

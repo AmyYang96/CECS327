@@ -3,6 +3,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.TreeMap;
+import java.util.List;
 /**
 * @author Amy Yang
 * @author Tiler Dao
@@ -117,5 +119,7 @@ public interface ChordMessageInterface extends Remote
      * @param counter - counter object
      */
     void completed(long key, Counter counter) throws RemoteException;
+	
+	public TreeMap<Long, List<String>> getMapMap()  throws RemoteException;
     
 }
