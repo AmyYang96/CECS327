@@ -63,8 +63,8 @@ public class Mapper extends java.rmi.server.UnicastRemoteObject implements MapIn
 		String[]values = value.split(":")[1].split(",");
 		for(String val : values)
 		{
-			System.out.println(val);
-			chord.emitMap(md5(val), val, counter);
+			System.out.println("----------" + val);
+			chord.emitMap(number, val, counter);
 		}
 		//System.out.println(chord);
 		
@@ -82,6 +82,7 @@ public class Mapper extends java.rmi.server.UnicastRemoteObject implements MapIn
 	 */
 	public void reduce(long key, String values[], CounterInterface counter) throws IOException
 	{
+		System.out.println("WORDVAL: "+values);
 		String word = values[0].split(":")[0];
 		chord.emitReduce(key, word + ":"+ values.length, counter);
 	}

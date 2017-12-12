@@ -69,6 +69,7 @@ public class Counter extends java.rmi.server.UnicastRemoteObject implements Coun
 	 */
 	public void decrement() throws RemoteException
 	{
+		System.out.println("DEC");
 		counter--;
 	}
 }
