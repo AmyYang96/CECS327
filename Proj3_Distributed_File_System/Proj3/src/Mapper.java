@@ -21,7 +21,7 @@ public class Mapper extends java.rmi.server.UnicastRemoteObject implements MapIn
 	{
 		chord = c;
 		
-		System.out.println("mapper make");
+		//System.out.println("mapper make");
 		try
         {
             // create the registry and bind the name and object.
@@ -58,7 +58,7 @@ public class Mapper extends java.rmi.server.UnicastRemoteObject implements MapIn
 	public void map(long key, String value, CounterInterface counter) throws IOException
 	{
 		//For each word in value
-		System.out.println("mapper map");
+		//System.out.println("mapper map");
 		int number = Integer.parseInt(value.split(":")[0]);
 		String[]values = value.split(":")[1].split(",");
 		for(String val : values)
@@ -68,7 +68,7 @@ public class Mapper extends java.rmi.server.UnicastRemoteObject implements MapIn
 		}
 		//System.out.println(chord);
 		
-		System.out.println("comple");
+		//System.out.println("comple");
 	}
 
 	public void test() {
@@ -82,6 +82,7 @@ public class Mapper extends java.rmi.server.UnicastRemoteObject implements MapIn
 	 */
 	public void reduce(long key, String values[], CounterInterface counter) throws IOException
 	{
+		System.out.println("WORDVAL: "+values);
 		String word = values[0].split(":")[0];
 		chord.emitReduce(key, word + ":"+ values.length, counter);
 	}

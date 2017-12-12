@@ -438,40 +438,40 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
      */
     public void emitMap(long key, String value, CounterInterface counter) throws RemoteException
     {
-        System.out.println("emit map");
+        //System.out.println("emit map");
         //System.out.println(key);
-        System.out.println(key);
-        System.out.println(predecessor.getId());
-        System.out.println(guid);
-        System.out.println(successor.getId());
+        //System.out.println(key);
+        //System.out.println(predecessor.getId());
+        //System.out.println(guid);
+        //System.out.println(successor.getId());
         if(isKeyInSemiCloseInterval(key, predecessor.getId(), guid)) {
             //stores key and value in TreeMap<Long,List<String>>
-            System.out.println("1");
+            //System.out.println("1");
             //System.out.println(mapMap);
             if (mapMap == null) {
-                System.out.println("ITWAS NUL!!!!");
+                //System.out.println("ITWAS NUL!!!!");
                 mapMap = new TreeMap<Long, List<String>>();
             }
         	if(mapMap.containsKey(key))
         	{
-                System.out.println("1.1");
+                //System.out.println("1.1");
         		List<String> newList = mapMap.get(key);
         		newList.add(value);
         		mapMap.put(key, newList);
         	} else {
-                System.out.println("1.2");
+                //System.out.println("1.2");
         		List<String> newList = new ArrayList<String>();
         		newList.add(value);
         		mapMap.put(key, newList);
         	}
-            System.out.println("1.3");
+            //System.out.println("1.3");
             counter.decrement();
         } else if(isKeyInSemiCloseInterval(key, guid, successor.getId())) {
-            System.out.println("2");
+            //System.out.println("2");
         	successor.emitMap(key, value, counter);
 
         } else {
-            System.out.println("3");
+            //System.out.println("3");
             closestPrecedingNode(key).emitMap(key,value,counter);
 
         }
@@ -486,6 +486,9 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
     public void emitReduce(long key, String value, CounterInterface counter) throws RemoteException {
         if(isKeyInSemiCloseInterval(key, predecessor.getId(), guid)) {
             //stores key and value in TreeMap<Long,String>
+            if (reduceMap == null) {
+                reduceMap = new TreeMap<Long, String>();
+            }
         	reduceMap.put(key, value);
             counter.decrement();
         } else if(isKeyInSemiCloseInterval(key, guid, successor.getId())) {
@@ -504,9 +507,9 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
      */
     public void mapContext(long key, MapInterface mapper, CounterInterface counter) throws RemoteException, IOException {
         // open page
-        System.out.println("start map");
+        //System.out.println("start map");
     	byte[]array = new byte[1024];
-    	System.out.println("today's key is " + key);
+    	//System.out.println("today's key is " + key);
     	InputStream is = locateSuccessor(key).get(key);
         if (is == null) {
             return;
@@ -514,19 +517,22 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
     	is.read(array);
     	String[]values = new String(array).split("/n");
     	//length - 1 because the last row is blank when splitting by "/n"
-    	// for each line, mapper.map(key, value, counter)   
-    	for(int i = 0; i < values.length - 1; i++)
+    	// for each line, mapper.map(key, value, counter)
+        int num = 0;
+    	for(int i = 0; i < values.length; i++)
     	{
-    		System.out.println("LINE" + i + ":" + values[i]);
+    		//System.out.println("LINE" + i + ":" + values[i]);
             //System.out.println(mapper);
             //System.out.println(key);
             //System.out.println(values[i]);
             //System.out.println(counter);
         	mapper.map(key, values[i], counter);
             //mapper.test();
-            System.out.println("done line");
+            //System.out.println("done line");
+            num += values[i].split(":")[1].split(",").length;
     	}
-    	counter.increment(key, values.length);
+        //System.out.println("INC: "+values.length);
+    	counter.increment(key, num);
          
     	// TODO create new threads?
     }
@@ -539,21 +545,23 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
      * @throws IOException 
      */
     public void reduceContext(long key, ReduceInterface reducer, CounterInterface counter) throws RemoteException, IOException {
+        //System.out.println("fdsa");
         if(key != guid)
         {
         	counter.add(guid);
         	successor.reduceContext(key, reducer, counter);
-        	// TODO new thread that iterates over treemap and executes reducer.reduce(key, value, counter)
-        	Set<Long> keySet = reduceMap.keySet();
-            int numRows = 0;
-        	for(Long k : keySet)
-        	{
-                numRows += 1;
-        		//reducer.reduce(k, reduceMap.get(k), counter);
-        		//needs to be values[]
-        	}
-            counter.increment(guid,numRows);
         }
+    	// TODO new thread that iterates over treemap and executes reducer.reduce(key, value, counter)
+    	Set<Long> keySet = mapMap.keySet();
+        int numRows = 0;
+    	for(Long k : keySet)
+    	{
+            numRows += 1;
+            List<String> l = mapMap.get(k);
+    		reducer.reduce(k, l.toArray(new String[l.size()]), counter);
+    		//needs to be values[]
+    	}
+        counter.increment(guid,numRows);
     }
 
     /**
@@ -565,12 +573,19 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
         if (key != guid) {
             counter.add(guid);
             successor.completed(key,counter);
-
-            // maybe put this outside conditional
-            // TODO create file that stores tree in file 'output' in page guid if it has some data
-            // but just print out map for now
-            counter.increment(guid,0);
         }
+
+        // TODO create file that stores tree in file 'output' in page guid if it has some data
+        // but just print out map for now
+        Set<Long> keySet = reduceMap.keySet();
+        for(Long key2 : keySet)
+        {
+            System.out.print(key2 + " : ");
+            String s = reduceMap.get(key2);
+            System.out.print(s);
+            System.out.println();
+        }
+        counter.increment(guid,0);
     }
 	
 	public TreeMap<Long, List<String>> getMapMap() throws RemoteException

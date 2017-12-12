@@ -21,7 +21,7 @@ public class Counter extends java.rmi.server.UnicastRemoteObject implements Coun
 	
 	public Counter(int port) throws RemoteException
 	{
-		System.out.println("counter make");
+		//System.out.println("counter make");
 		set = new HashSet<Long>();
 		try
         {
@@ -69,6 +69,7 @@ public class Counter extends java.rmi.server.UnicastRemoteObject implements Coun
 	 */
 	public void decrement() throws RemoteException
 	{
+		//System.out.println("DEC");
 		counter--;
 	}
 }
