@@ -59,7 +59,7 @@ public class DFS
         this.port = port;
         long guid = md5("" + port);
         chord = new Chord(port, guid);
-        /*Files.createDirectories(Paths.get(guid+"/repository"));
+        Files.createDirectories(Paths.get(guid+"/repository"));
         System.out.println(md5("Metadata"));
         File f = new File(guid+"/repository/"+md5("Metadata"));
         System.out.println("wot");
@@ -72,7 +72,7 @@ public class DFS
         	f.createNewFile();
         } else {
             System.out.println("metadata already in place");
-        }*/
+        }
     }
     
 
@@ -496,21 +496,27 @@ public class DFS
         JsonReader jr = readMetaData();
         JsonObject meta = (JsonObject)jp.parse(jr);
         JsonArray fileList = meta.getAsJsonArray("metadata");
+        System.out.println("FIle "+fileList.size());
         for(int i = 0; i < fileList.size(); i++){
         	JsonObject jo = fileList.get(i).getAsJsonObject();
         	String name = jo.get("name").getAsString();
+            System.out.println(name);
         	if(name.equals(fileName))
         	{
         		numPages = jo.get("numberOfPages").getAsInt();
         		pages = jo.get("pages").getAsJsonArray();
+                break;
         	}
-        	break;
         }
         System.out.println("huh");
-        long guid = md5("Metadata");
-        ChordMessageInterface peer = chord.locateSuccessor(guid);
+        //long guid = md5("Metadata");
+        //ChordMessageInterface peer = chord.locateSuccessor(guid);
+        ChordMessageInterface peer = chord;
+        System.out.println("peer?");
+        System.out.println(pages);
         for(int i = 0; i < pages.size(); i++)
         {
+            System.out.println("obj???");
         	JsonObject p = pages.get(i).getAsJsonObject();
         	long pageID = p.get("guid").getAsLong();
         	mapCounter.add(pageID);
@@ -526,7 +532,7 @@ public class DFS
         peer.reduceContext(chord.getId(), mapperReducer, reduceCounter);
         while (!reduceCounter.hasCompleted());
         
-        peer.completed(guid, completedCounter);
+        peer.completed(chord.getId(), completedCounter);
         while (!completedCounter.hasCompleted());
         
         System.out.println("we did it");

@@ -449,6 +449,7 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
             System.out.println("1");
             //System.out.println(mapMap);
             if (mapMap == null) {
+                System.out.println("ITWAS NUL!!!!");
                 mapMap = new TreeMap<Long, List<String>>();
             }
         	if(mapMap.containsKey(key))
