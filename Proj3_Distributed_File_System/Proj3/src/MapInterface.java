@@ -5,8 +5,20 @@ import java.net.*;
 import java.util.*;
 import java.io.*;
 
-// map phase
-public interface MapInterface  {
-	public void map(int key, String value) throws IOException;
+/**
+* This class represents an interface for the map phase
+* @author Amy Yang
+* @author Tiler Dao
+* @author Christian Eirik Blydt-Hansen
+*/
+public interface MapInterface extends Remote {
+	/**
+	 * Maps the guid and content to TreeMap
+	 * @param key - guid
+	 * @param value - page content
+	 */
+	public void map(long key, String value, CounterInterface counter) throws RemoteException, IOException;
+
+	public void test() throws RemoteException;
 }
 

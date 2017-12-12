@@ -1,5 +1,8 @@
-import java.rmi.*;
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 /**
 * @author Amy Yang
 * @author Tiler Dao
@@ -60,7 +63,7 @@ public interface ChordMessageInterface extends Remote
     * @param stream  – data to be stored
     */
     public void put(long guidObject, InputStream inputStream) throws IOException, RemoteException;
-    
+        
     /**
     * Retrieves the data associated with GUID from one of the nodes responsible for it
     * @param guidObject –file name
@@ -74,15 +77,45 @@ public interface ChordMessageInterface extends Remote
     */
     public void delete(long guidObject) throws IOException, RemoteException;
 
+    /**
+     * Map phase that sorts the keys by adding them to a TreeMap
+     * @param key - guid
+     * @param value - page content
+     * @param counter - counter object
+     */
+    void emitMap(long key, String value, CounterInterface counter) throws RemoteException;
 
-    void emitMap(int key, String value, Counter counter);
+    /**
+     * Removes repeated keys from the map
+     * @param key - guid
+     * @param value - page content
+     * @param counter - counter object
+     */
+    void emitReduce(long key, String value, CounterInterface counter) throws RemoteException;
 
-    void emitReduce(int key, String value, Counter counter);
+    /**
+     * Reads the page and maps the content
+     * @param key - guid
+     * @param mapper - interface that maps the content
+     * @param counter - counter object
+     * @throws IOException 
+     */
+    void mapContext(long key, MapInterface mapper, CounterInterface counter) throws RemoteException, IOException;
 
-    void mapContext(int page, MapInterface mapper, Counter counter);
-
-    void reduceContext(int source, ReduceInterface reducer, Counter counter);
-
-    void completed(int source, Counter counter);
+    /**
+     * Removes the repeated content
+     * @param key - guid
+     * @param mapper - interface that maps the content
+     * @param counter - counter object
+     * @throws IOException 
+     */
+    void reduceContext(long key, ReduceInterface reducer, CounterInterface counter) throws RemoteException, IOException;
+    
+    /**
+     * Create a new file that stores the tree in the file output in  page guid
+     * @param source - source id
+     * @param counter - counter object
+     */
+    void completed(long key, Counter counter) throws RemoteException;
     
 }

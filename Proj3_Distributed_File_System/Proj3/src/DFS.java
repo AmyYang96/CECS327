@@ -59,7 +59,20 @@ public class DFS
         this.port = port;
         long guid = md5("" + port);
         chord = new Chord(port, guid);
-        Files.createDirectories(Paths.get(guid+"/repository"));
+        /*Files.createDirectories(Paths.get(guid+"/repository"));
+        System.out.println(md5("Metadata"));
+        File f = new File(guid+"/repository/"+md5("Metadata"));
+        System.out.println("wot");
+        if(!f.exists())
+        {
+            System.out.println("creating metadata");
+        	PrintWriter pr = new PrintWriter(f);
+        	pr.print("{\"metadata\":[]}");
+        	pr.close();
+        	f.createNewFile();
+        } else {
+            System.out.println("metadata already in place");
+        }*/
     }
     
 
@@ -95,6 +108,7 @@ public class DFS
     {
         //JsonParser jsonParser _ null;
         long guid = md5("Metadata");
+        System.out.println(guid);
         ChordMessageInterface peer = chord.locateSuccessor(guid);
         InputStream metadataraw = peer.get(guid);
         // jsonParser = Json.createParser(metadataraw);
@@ -236,6 +250,7 @@ public class DFS
         InputStream is = new FileStream(str.getBytes(Charset.forName("UTF-8")));
         writeMetaData(is);
 
+        //"{\"metadata\":[]}"
         // Write Metadata        
     }
 
@@ -325,17 +340,32 @@ public class DFS
         return array;
     }
     
-    
+    /**
+     * Reads the content from the last page in a file 
+     * @param fileName – name of file to be read from
+     */
     public byte[] tail(String fileName) throws Exception
     {
         // TODO: return the last page of the fileName
         return read(fileName,-1);
     }
+    
+    /**
+     * Reads the content from the first page in a file 
+     * @param fileName – name of file to be read from
+     */
     public byte[] head(String fileName) throws Exception
     {
         // TODO: return the first page of the fileName
         return read(fileName,1);
     }
+    
+    
+    /**
+     * Appends content to a file 
+     * @param fileName – name of file to append to
+     * @param data - content to be appended
+     */
     public void append(String filename, byte[] data) throws Exception
     {
         // TODO: append data to fileName. If it is needed, add a new page.
@@ -446,28 +476,60 @@ public class DFS
 
         
     }
-
-    public void runMapReduce(File file)
+    
+    /**
+     * Runs map reduce on a file
+     * @param fileName - name of file
+     * @throws Exception 
+     */
+    public void runMapReduce(String fileName) throws Exception
     {
-        Counter mapCounter = new Counter();
-        Counter reduceCounter = new Counter();
-        Counter completedCounter = new Counter();
+        Counter mapCounter = new Counter(port+1000);
+        Counter reduceCounter = new Counter(port+2000);
+        Counter completedCounter = new Counter(port+3000);
         
-        Mapper mapperReducer = new Mapper();
-        //MapInterface mapper = new MapInterface();
-        //ReduceInterface reducer = new ReduceInterface();
+        Mapper mapperReducer = new Mapper(chord);
+        //get number of pages
+        int numPages = 0;
+        JsonArray pages = null;
+        JsonParser jp = new JsonParser();
+        JsonReader jr = readMetaData();
+        JsonObject meta = (JsonObject)jp.parse(jr);
+        JsonArray fileList = meta.getAsJsonArray("metadata");
+        for(int i = 0; i < fileList.size(); i++){
+        	JsonObject jo = fileList.get(i).getAsJsonObject();
+        	String name = jo.get("name").getAsString();
+        	if(name.equals(fileName))
+        	{
+        		numPages = jo.get("numberOfPages").getAsInt();
+        		pages = jo.get("pages").getAsJsonArray();
+        	}
+        	break;
+        }
+        System.out.println("huh");
+        long guid = md5("Metadata");
+        ChordMessageInterface peer = chord.locateSuccessor(guid);
+        for(int i = 0; i < pages.size(); i++)
+        {
+        	JsonObject p = pages.get(i).getAsJsonObject();
+        	long pageID = p.get("guid").getAsLong();
+        	mapCounter.add(pageID);
+        	
+            System.out.println("a");
+            //System.out.println(mapperReducer);
+            peer.mapContext(pageID, mapperReducer, mapCounter);
+            System.out.println("mapped??");
+        }
+        System.out.println("now we wait");
+        while (!mapCounter.hasCompleted());
+        System.out.println("???????????????");
+        peer.reduceContext(chord.getId(), mapperReducer, reduceCounter);
+        while (!reduceCounter.hasCompleted());
         
-        // map Phases
-        //for each page in metafile.file
-        //    mapCounter.add(page);
-            //Let peer be the process responsible for storing page
-        //    peer.mapContext(page, mapper, mapCounter)
-        //wait until mapCounter.hasCompleted() = true
-        //reduce phase
-        //reduceContext(guid, mapperReducer, reduceCounter);
-        //wait until reduceCounter.hasCompleted() = true;
-        //completed(guid, completedCounter);
-        //wait until completedCounter.hasCompleted() 
+        peer.completed(guid, completedCounter);
+        while (!completedCounter.hasCompleted());
+        
+        System.out.println("we did it");
     }
     
 }

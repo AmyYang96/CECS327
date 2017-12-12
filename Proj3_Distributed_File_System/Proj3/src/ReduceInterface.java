@@ -4,8 +4,17 @@ import java.rmi.server.*;
 import java.net.*;
 import java.util.*;
 import java.io.*;
-
-// reduce phase
-public interface ReduceInterface  {
-	public void reduce(int key, String value[]) throws IOException;
+/**
+* This class represents an interface for reduce map phase
+* @author Amy Yang
+* @author Tiler Dao
+* @author Christian Eirik Blydt-Hansen
+*/
+public interface ReduceInterface extends Remote {
+	/**
+	 * Removes repeated keys in the map
+	 * @param key -  guid
+	 * @param value - page content
+	 */
+	public void reduce(long key, String value[], CounterInterface counter) throws RemoteException, IOException;
 }
