@@ -541,7 +541,6 @@ public class DFS implements Serializable
 		};
 		mapThread.start();
         Thread.sleep(1000);
-		
         while (!mapCounter.hasCompleted());
         
 		Thread reduceThread = new Thread() {
