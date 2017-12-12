@@ -514,33 +514,47 @@ public class DFS
         //ChordMessageInterface peer = chord;
         System.out.println("peer?");
         System.out.println(pages);
-        for(int i = 0; i < pages.size(); i++)
-        {
-            System.out.println("obj???");
-        	JsonObject p = pages.get(i).getAsJsonObject();
-        	long pageID = p.get("guid").getAsLong();
-        	mapCounter.add(pageID);
-        	
-            System.out.println("a");
-            //System.out.println(mapperReducer);
-            chord.mapContext(pageID, mapperReducer, mapCounter);
-            System.out.println("mapped??");
-        }
-        System.out.println("now we wait");
-		TreeMap<Long, List<String>> mapMap = chord.getMapMap();
-		if(mapMap == null) System.out.println("HELP");
-		Set<Long> keySet = mapMap.keySet();
-		System.out.println("PRINTING OUT THE STUFF");
-		for(Long key : keySet)
-		{
-			System.out.print(key + " : ");
-			List<String> list = mapMap.get(key);
-			for(String str : list)
-			{
-				System.out.print(str + ",");
+		final JsonArray pagesFinal = pages;
+		Thread mapThread = new Thread() {
+			public void run() {
+				try{
+					for(int i = 0; i < pagesFinal.size(); i++)
+					{
+						System.out.println("obj???");
+						JsonObject p = pagesFinal.get(i).getAsJsonObject();
+						long pageID = p.get("guid").getAsLong();
+						mapCounter.add(pageID);
+						
+						System.out.println("a");
+						//System.out.println(mapperReducer);
+						chord.mapContext(pageID, mapperReducer, mapCounter);
+						System.out.println("mapped??");
+					}
+					TreeMap<Long, List<String>> mapMap = chord.getMapMap();
+					if(mapMap == null) System.out.println("HELP");
+					Set<Long> keySet = mapMap.keySet();
+					System.out.println("PRINTING OUT THE STUFF");
+					for(Long key : keySet)
+					{
+						System.out.print(key + " : ");
+						List<String> list = mapMap.get(key);
+						for(String str : list)
+						{
+							System.out.print(str + ",");
+						}
+						System.out.println();
+					}
+				} catch(Exception e)
+				{
+					e.printStackTrace();
+				} finally {
+					System.out.println("MAP REDUCE FINISHED");
+				}
 			}
-			System.out.println();
-		}
+		};
+		mapThread.start();
+        System.out.println("now we wait");
+		
         while (!mapCounter.hasCompleted());
         System.out.println("???????????????");
         chord.reduceContext(chord.getId(), mapperReducer, reduceCounter);
